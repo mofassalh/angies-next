@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import LocationPopup from '@/components/LocationPopup'
 import Navbar from '@/components/Navbar'
@@ -13,6 +13,16 @@ export default function Home() {
   const [showOrderType, setShowOrderType] = useState(false)
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null)
   const router = useRouter()
+
+  useEffect(() => {
+    const saved = localStorage.getItem('selectedLocationName')
+    if (saved) {
+      setSelectedLocation(saved)
+    } else {
+      // Auto show popup if no location selected
+      setTimeout(() => setShowLocationPopup(true), 500)
+    }
+  }, [])
 
   const handleLocationSelect = (locationId: string, locationName: string) => {
     setSelectedLocation(locationName)
@@ -50,7 +60,6 @@ export default function Home() {
         />
       )}
 
-      {/* Order Type Popup */}
       {showOrderType && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
           style={{ backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)' }}>
