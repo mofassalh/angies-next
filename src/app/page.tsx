@@ -16,12 +16,7 @@ export default function Home() {
 
   useEffect(() => {
     const saved = localStorage.getItem('selectedLocationName')
-    if (saved) {
-      setSelectedLocation(saved)
-    } else {
-      // Auto show popup if no location selected
-      setTimeout(() => setShowLocationPopup(true), 500)
-    }
+    if (saved) setSelectedLocation(saved)
   }, [])
 
   const handleLocationSelect = (locationId: string, locationName: string) => {
