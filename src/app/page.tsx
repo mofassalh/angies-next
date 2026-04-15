@@ -44,7 +44,7 @@ export default function Home() {
         onLocationClick={() => setShowLocationPopup(true)}
       />
       <HeroSection onOrderClick={() => setShowLocationPopup(true)} />
-      <FeaturedItems />
+      <FeaturedItems onOrderClick={() => setShowLocationPopup(true)} />
       <PromoSection onOrderClick={() => setShowLocationPopup(true)} />
       <Footer />
 
