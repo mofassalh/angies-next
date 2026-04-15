@@ -1,22 +1,24 @@
 'use client'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Navbar from '@/components/Navbar'
 
 const PARTNERS = [
   {
     name: 'Uber Eats',
-    logo: '🛵',
+    emoji: '🛵',
     color: '#06C167',
     url: 'https://www.ubereats.com/au/store/angies-kebabs-burgers',
   },
   {
     name: 'DoorDash',
-    logo: '🔴',
+    emoji: '🔴',
     color: '#FF3008',
     url: 'https://www.doordash.com',
   },
   {
     name: 'Menulog',
-    logo: '🟠',
+    emoji: '🟠',
     color: '#FF8000',
     url: 'https://www.menulog.com.au',
   },
@@ -24,43 +26,43 @@ const PARTNERS = [
 
 export default function DeliveryPage() {
   const router = useRouter()
-  const location = typeof window !== 'undefined' ? localStorage.getItem('selectedLocationName') : ''
+  const [location, setLocation] = useState('')
+
+  useEffect(() => {
+    const saved = localStorage.getItem('selectedLocationName')
+    if (saved) setLocation(saved)
+  }, [])
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ backgroundColor: '#FFFDF5' }}>
-      {/* Header */}
-      <div className="flex items-center gap-4 px-6 py-4 bg-white shadow-sm">
-        <button onClick={() => router.back()} style={{ color: '#888' }}>← Back</button>
-        <div>
-          <h1 className="font-bold" style={{ color: '#1A1A1A' }}>Order Delivery</h1>
-          <p className="text-xs" style={{ color: '#888' }}>{location}</p>
-        </div>
-      </div>
-
-      <div className="max-w-md mx-auto w-full px-6 py-12">
-        <h2 className="text-2xl font-bold mb-2 text-center" style={{ color: '#1A1A1A' }}>Choose a delivery partner</h2>
-        <p className="text-center text-sm mb-8" style={{ color: '#888' }}>You'll be redirected to the partner's app</p>
+    <main className="min-h-screen bg-gray-50">
+      <Navbar selectedLocation={location || null} onLocationClick={() => {}} />
+      <div className="pt-16 max-w-md mx-auto px-4 py-10">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2" style={{fontFamily: 'var(--font-display)'}}>
+          Delivery
+        </h1>
+        <p className="text-gray-500 mb-8">Choose a delivery partner to place your order</p>
 
         <div className="space-y-3">
           {PARTNERS.map(partner => (
             <a key={partner.name} href={partner.url} target="_blank" rel="noopener noreferrer"
-              className="flex items-center justify-between w-full p-5 rounded-2xl bg-white transition"
-              style={{ border: '2px solid #e5e5e5', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+              className="flex items-center justify-between w-full p-5 bg-white rounded-2xl border border-gray-100 hover:shadow-md transition-all hover:-translate-y-0.5">
               <div className="flex items-center gap-4">
-                <span className="text-3xl">{partner.logo}</span>
-                <span className="font-bold text-lg" style={{ color: '#1A1A1A' }}>{partner.name}</span>
+                <span className="text-3xl">{partner.emoji}</span>
+                <span className="font-bold text-lg text-gray-900">{partner.name}</span>
               </div>
-              <span style={{ color: '#aaa' }}>→</span>
+              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
             </a>
           ))}
         </div>
 
         <button onClick={() => router.push('/menu')}
-          className="w-full mt-8 py-3 rounded-2xl text-sm font-medium"
-          style={{ border: '2px solid #e5e5e5', color: '#555' }}>
-          Or order for pickup instead
+          className="w-full mt-6 py-3 rounded-full font-semibold border-2 transition-all hover:bg-orange-50"
+          style={{borderColor: 'var(--color-primary)', color: 'var(--color-primary)'}}>
+          Order for Pickup instead
         </button>
       </div>
-    </div>
+    </main>
   )
 }
