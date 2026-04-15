@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useCartStore } from '@/store/cartStore'
 
 interface Option {
@@ -35,6 +36,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
   const [quantity, setQuantity] = useState(1)
   const [added, setAdded] = useState(false)
   const addItem = useCartStore(state => state.addItem)
+  const router = useRouter()
 
   const customizations: Section[] = product.customizations || []
 
@@ -64,7 +66,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
   const optionsPrice = calculateOptionsPrice()
   const totalPrice = (product.base_price + optionsPrice) * quantity
 
-  const handleAddToCart = () => {
+  const buildCartItem = () => {
     const selectedOpts: any[] = []
     Object.entries(selectedOptions).forEach(([sectionName, opt]: any) => {
       if (Array.isArray(opt)) {
@@ -75,8 +77,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
         selectedOpts.push({ groupName: sectionName, optionName: opt.name, price: opt.price })
       }
     })
-
-    addItem({
+    return {
       productId: product.id,
       name: product.name,
       price: product.base_price,
@@ -84,10 +85,19 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
       selectedOptions: selectedOpts,
       optionsPrice,
       lineTotal: totalPrice,
-    })
+    }
+  }
 
+  const handleAddMore = () => {
+    addItem(buildCartItem())
     setAdded(true)
-    setTimeout(() => { onClose() }, 800)
+    setTimeout(() => { onClose() }, 600)
+  }
+
+  const handleCheckout = () => {
+    addItem(buildCartItem())
+    onClose()
+    router.push('/checkout')
   }
 
   const emojis: Record<string, string> = {
@@ -134,7 +144,6 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
             ${product.base_price.toFixed(2)}
           </div>
 
-          {/* Customizations */}
           {customizations.length > 0 && (
             <div className="space-y-6">
               {customizations.map((section: Section) => (
@@ -193,11 +202,24 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                 +
               </button>
             </div>
+            <div className="flex-1 text-right">
+              <span className="text-lg font-bold" style={{color: 'var(--color-primary)'}}>
+                ${totalPrice.toFixed(2)}
+              </span>
+            </div>
+          </div>
 
-            <button onClick={handleAddToCart}
-              className="flex-1 py-3 rounded-full text-white font-semibold transition-all hover:shadow-lg hover:scale-105 active:scale-95"
-              style={{background: added ? '#10B981' : 'var(--color-primary)'}}>
-              {added ? '✓ Added to Cart!' : `Add to Cart — $${totalPrice.toFixed(2)}`}
+          <div className="grid grid-cols-2 gap-3 mt-4">
+            <button onClick={handleAddMore}
+              disabled={added}
+              className="py-3 rounded-full font-semibold border-2 transition-all hover:bg-orange-50 disabled:opacity-60"
+              style={{borderColor: added ? '#10B981' : 'var(--color-primary)', color: added ? '#10B981' : 'var(--color-primary)'}}>
+              {added ? '✓ Added!' : 'Add More'}
+            </button>
+            <button onClick={handleCheckout}
+              className="py-3 rounded-full text-white font-semibold transition-all hover:shadow-lg hover:scale-105"
+              style={{background: 'var(--color-primary)'}}>
+              Checkout →
             </button>
           </div>
         </div>
