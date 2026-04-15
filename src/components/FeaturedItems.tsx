@@ -2,14 +2,18 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
+import ProductModal from '@/components/ProductModal'
 
 interface MenuItem {
   id: string
   name: string
   description: string
   price: number
+  base_price: number
   image_url: string | null
   category: string
+  customizations?: any[]
+  tags?: string[]
 }
 
 interface FeaturedItemsProps {
@@ -18,6 +22,7 @@ interface FeaturedItemsProps {
 
 export default function FeaturedItems({ onOrderClick }: FeaturedItemsProps) {
   const [items, setItems] = useState<MenuItem[]>([])
+  const [selectedProduct, setSelectedProduct] = useState<any | null>(null)
   const router = useRouter()
   const supabase = createClient()
 
@@ -34,9 +39,9 @@ export default function FeaturedItems({ onOrderClick }: FeaturedItemsProps) {
   }, [])
 
   const emojis: Record<string, string> = {
-    'burger': '🍔', 'kebab': '🥙', 'wrap': '🌯',
-    'fries': '🍟', 'drinks': '🥤', 'sides': '🍱',
-    'dessert': '🍮', 'default': '🍽️'
+    burger: '🍔', kebab: '🥙', wrap: '🌯',
+    fries: '🍟', drinks: '🥤', sides: '🍱',
+    dessert: '🍮', default: '🍽️'
   }
 
   const getEmoji = (name: string) => {
@@ -47,13 +52,21 @@ export default function FeaturedItems({ onOrderClick }: FeaturedItemsProps) {
     return emojis.default
   }
 
-  const handleAddClick = () => {
+  const handleItemClick = (item: MenuItem) => {
     const location = localStorage.getItem('selectedLocationName')
-    if (location) {
-      router.push('/menu')
-    } else {
+    if (!location) {
       onOrderClick()
+      return
     }
+    setSelectedProduct({
+      id: item.id,
+      name: item.name,
+      description: item.description,
+      base_price: item.base_price ?? item.price,
+      image_url: item.image_url,
+      tags: item.tags || [],
+      customizations: item.customizations || [],
+    })
   }
 
   return (
@@ -62,7 +75,7 @@ export default function FeaturedItems({ onOrderClick }: FeaturedItemsProps) {
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold mb-4"
             style={{background: '#FEE2D5', color: 'var(--color-primary)'}}>
-            ✨ Featured Items
+            Featured Items
           </div>
           <h2 className="text-4xl font-bold" style={{fontFamily: 'var(--font-display)'}}>
             Customer Favourites
@@ -76,7 +89,7 @@ export default function FeaturedItems({ onOrderClick }: FeaturedItemsProps) {
           {items.map((item) => (
             <div key={item.id}
               className="group bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer"
-              onClick={handleAddClick}>
+              onClick={() => handleItemClick(item)}>
               <div className="h-44 flex items-center justify-center relative overflow-hidden"
                 style={{background: 'linear-gradient(135deg, #FFF7F4, #FFF0EA)'}}>
                 {item.image_url ? (
@@ -94,7 +107,7 @@ export default function FeaturedItems({ onOrderClick }: FeaturedItemsProps) {
                 </p>
                 <div className="flex items-center justify-between">
                   <span className="text-lg font-bold" style={{color: 'var(--color-primary)'}}>
-                    ${item.price.toFixed(2)}
+                    ${(item.base_price ?? item.price).toFixed(2)}
                   </span>
                   <button
                     className="w-8 h-8 rounded-full text-white flex items-center justify-center text-lg font-bold hover:scale-110 transition-transform"
@@ -116,10 +129,17 @@ export default function FeaturedItems({ onOrderClick }: FeaturedItemsProps) {
             }}
             className="px-8 py-3 rounded-full font-semibold border-2 transition-all hover:bg-orange-50"
             style={{borderColor: 'var(--color-primary)', color: 'var(--color-primary)'}}>
-            View Full Menu →
+            View Full Menu
           </button>
         </div>
       </div>
+
+      {selectedProduct && (
+        <ProductModal
+          product={selectedProduct}
+          onClose={() => setSelectedProduct(null)}
+        />
+      )}
     </section>
   )
 }
