@@ -13,12 +13,19 @@ interface NavbarProps {
 }
 
 export default function Navbar({ selectedLocation, onLocationClick }: NavbarProps) {
+  const [settings, setSettings] = useState<any>({})
+
   const [user, setUser] = useState<any>(null)
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
     const supabase = createClient()
+    supabase.from('settings').select('*').then(({ data }) => {
+      const map: any = {}
+      data?.forEach((r: any) => { map[r.key] = r.value })
+      setSettings(map)
+    })
     supabase.auth.getUser().then(({ data }) => {
       setUser(data.user)
     })
@@ -30,6 +37,11 @@ export default function Navbar({ selectedLocation, onLocationClick }: NavbarProp
 
   const handleSignOut = async () => {
     const supabase = createClient()
+    supabase.from('settings').select('*').then(({ data }) => {
+      const map: any = {}
+      data?.forEach((r: any) => { map[r.key] = r.value })
+      setSettings(map)
+    })
     await supabase.auth.signOut()
     setUser(null)
     setDropdownOpen(false)
@@ -47,8 +59,8 @@ export default function Navbar({ selectedLocation, onLocationClick }: NavbarProp
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="flex items-center gap-2">
-            <Image src="/logo.jpg" alt="Angie's" width={44} height={44} className="rounded-full object-cover" />
-            <span className="font-bold text-lg" style={{fontFamily: 'var(--font-display)'}}>Angie's</span>
+            {settings.logo_url ? <img src={settings.logo_url} alt={settings.business_name || "Angie's"} className="w-11 h-11 rounded-full object-cover" /> : <Image src="/logo.jpg" alt="Angie's" width={44} height={44} className="rounded-full object-cover" />}
+            <span className="font-bold text-lg" style={{fontFamily: 'var(--font-display)'}}>{settings.business_name || "Angie's"}</span>
           </Link>
           <button onClick={onLocationClick} className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-full border border-gray-200 hover:border-yellow-400 hover:bg-yellow-50 transition-all text-sm font-medium">
             <svg className="w-4 h-4" style={{color: 'var(--color-primary)'}} fill="none" stroke="currentColor" viewBox="0 0 24 24">
