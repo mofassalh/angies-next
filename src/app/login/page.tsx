@@ -1,12 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 
-export default function LoginPage() {
+function LoginContent() {
   const [mode, setMode] = useState<'login' | 'signup'>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -16,6 +16,8 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirect = searchParams.get('redirect') || '/'
 
   const handleSubmit = async () => {
     setError('')
@@ -28,7 +30,7 @@ export default function LoginPage() {
       if (error) {
         setError(error.message)
       } else {
-        router.push('/')
+        router.push(redirect)
       }
     } else {
       if (!phone) { setError('Phone number is required'); setLoading(false); return }
@@ -40,7 +42,6 @@ export default function LoginPage() {
       if (error) {
         setError(error.message)
       } else {
-        // Insert profile
         if (data.user) {
           await supabase.from('profiles').upsert({
             id: data.user.id,
@@ -59,16 +60,13 @@ export default function LoginPage() {
     const supabase = createClient()
     await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/` }
+      options: { redirectTo: `${window.location.origin}${redirect}` }
     })
   }
 
   return (
     <main className="min-h-screen flex items-center justify-center px-4" style={{background: 'linear-gradient(135deg, #FFFDF0 0%, #FFF9D6 100%)'}}>
-
       <div className="w-full max-w-md">
-
-        {/* Logo */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex flex-col items-center gap-2">
             <Image src="/logo.jpg" alt="Angie's" width={72} height={72} className="rounded-full object-cover shadow-md" />
@@ -76,11 +74,14 @@ export default function LoginPage() {
               Angie's Kebabs & Burgers
             </span>
           </Link>
+          {redirect === '/checkout' && (
+            <div className="mt-3 px-4 py-2 bg-orange-50 border border-orange-200 rounded-xl text-sm text-orange-700 font-medium">
+              🔒 Please sign in to place your order
+            </div>
+          )}
         </div>
 
         <div className="bg-white rounded-3xl shadow-xl p-8">
-
-          {/* Tabs */}
           <div className="flex rounded-xl p-1 mb-6" style={{background: '#F3F4F6'}}>
             <button
               onClick={() => { setMode('login'); setError(''); setSuccess('') }}
@@ -98,7 +99,6 @@ export default function LoginPage() {
             </button>
           </div>
 
-          {/* Error / Success */}
           {error && (
             <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm">
               {error}
@@ -203,5 +203,13 @@ export default function LoginPage() {
         </p>
       </div>
     </main>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <LoginContent />
+    </Suspense>
   )
 }

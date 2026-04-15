@@ -9,6 +9,7 @@ import { createClient } from '@/lib/supabase'
 
 export default function CheckoutPage() {
   const [mounted, setMounted] = useState(false)
+  const [authChecked, setAuthChecked] = useState(false)
   const [orderType, setOrderType] = useState<'pickup' | 'delivery'>('pickup')
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
@@ -23,9 +24,25 @@ export default function CheckoutPage() {
     setMounted(true)
     const savedType = localStorage.getItem('orderType')
     if (savedType) setOrderType(savedType as 'pickup' | 'delivery')
+
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data }) => {
+      if (!data.user) {
+        router.push('/login?redirect=/checkout')
+      } else {
+        const meta = data.user.user_metadata
+        setForm(f => ({
+          ...f,
+          name: meta?.full_name || '',
+          email: data.user?.email || '',
+          phone: meta?.phone || '',
+        }))
+        setAuthChecked(true)
+      }
+    })
   }, [])
 
-  if (!mounted) return null
+  if (!mounted || !authChecked) return null
 
   if (items.length === 0) {
     return (
@@ -64,10 +81,13 @@ export default function CheckoutPage() {
       lineTotal: item.lineTotal,
     }))
 
+    const { data: userData } = await supabase.auth.getUser()
+
     const { error } = await supabase.from('orders').insert({
       order_number: orderNumber,
       customer_name: form.name,
       customer_phone: form.phone,
+      customer_email: form.email,
       customer_address: orderType === 'delivery'
         ? `${form.address}, ${form.suburb} ${form.postcode}`
         : '',
@@ -77,6 +97,7 @@ export default function CheckoutPage() {
       total: finalTotal,
       status: 'pending',
       notes: form.notes,
+      user_id: userData.user?.id || null,
     })
 
     if (error) {
@@ -98,7 +119,6 @@ export default function CheckoutPage() {
           Checkout
         </h1>
 
-        {/* Steps */}
         <div className="flex items-center gap-3 mb-8">
           {[1, 2].map(s => (
             <div key={s} className="flex items-center gap-2">
