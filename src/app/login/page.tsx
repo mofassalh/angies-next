@@ -60,7 +60,7 @@ function LoginContent() {
     const supabase = createClient()
     await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `https://angies-next.vercel.app${redirect}` }
+      options: { redirectTo: `https://angiesknb.com${redirect}` }
     })
   }
 
