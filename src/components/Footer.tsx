@@ -22,8 +22,8 @@ export default function Footer() {
 
   const businessName = settings.business_name || "Angie's"
   const tagline = settings.tagline || 'Fresh kebabs and gourmet burgers across Melbourne. Made with love, served with pride.'
-  const facebook = settings.facebook_url || '#'
-  const instagram = settings.instagram_url || '#'
+  const facebook = settings.facebook || '#'
+  const instagram = settings.instagram || '#'
   const copyright = settings.copyright || `© ${new Date().getFullYear()} Angie's Kebabs & Burgers. All rights reserved.`
 
   return (
