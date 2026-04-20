@@ -12,11 +12,9 @@ export default function Home() {
   const [showLocationPopup, setShowLocationPopup] = useState(false)
   const [showOrderType, setShowOrderType] = useState(false)
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null)
-  const [mounted, setMounted] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
-    setMounted(true)
     const saved = localStorage.getItem('selectedLocationName')
     if (saved) setSelectedLocation(saved)
   }, [])
@@ -47,8 +45,6 @@ export default function Home() {
       router.push('/delivery')
     }
   }
-
-  if (!mounted) return null
 
   return (
     <main className="min-h-screen bg-white">
