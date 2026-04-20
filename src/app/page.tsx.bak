@@ -12,23 +12,12 @@ export default function Home() {
   const [showLocationPopup, setShowLocationPopup] = useState(false)
   const [showOrderType, setShowOrderType] = useState(false)
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null)
-  const [mounted, setMounted] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
-    setMounted(true)
     const saved = localStorage.getItem('selectedLocationName')
     if (saved) setSelectedLocation(saved)
   }, [])
-
-  const handleOrderClick = () => {
-    const locationId = localStorage.getItem('selectedLocationId')
-    if (locationId) {
-      setShowOrderType(true)
-    } else {
-      setShowLocationPopup(true)
-    }
-  }
 
   const handleLocationSelect = (locationId: string, locationName: string) => {
     setSelectedLocation(locationName)
@@ -48,17 +37,15 @@ export default function Home() {
     }
   }
 
-  if (!mounted) return null
-
   return (
     <main className="min-h-screen bg-white">
       <Navbar
         selectedLocation={selectedLocation}
         onLocationClick={() => setShowLocationPopup(true)}
       />
-      <HeroSection onOrderClick={handleOrderClick} />
-      <FeaturedItems onOrderClick={handleOrderClick} />
-      <PromoSection onOrderClick={handleOrderClick} />
+      <HeroSection onOrderClick={() => setShowLocationPopup(true)} />
+      <FeaturedItems onOrderClick={() => setShowLocationPopup(true)} />
+      <PromoSection onOrderClick={() => setShowLocationPopup(true)} />
       <Footer />
 
       {showLocationPopup && (

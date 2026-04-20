@@ -53,13 +53,8 @@ export default function FeaturedItems({ onOrderClick }: FeaturedItemsProps) {
   }
 
   const handleItemClick = (item: MenuItem) => {
-    const locationId = localStorage.getItem('selectedLocationId')
-    if (!locationId) {
-      onOrderClick()
-      return
-    }
-    const orderType = localStorage.getItem('orderType')
-    if (!orderType) {
+    const location = localStorage.getItem('selectedLocationName')
+    if (!location) {
       onOrderClick()
       return
     }
@@ -72,16 +67,6 @@ export default function FeaturedItems({ onOrderClick }: FeaturedItemsProps) {
       tags: item.tags || [],
       customizations: item.customizations || [],
     })
-  }
-
-  const handleViewMenu = () => {
-    const locationId = localStorage.getItem('selectedLocationId')
-    const orderType = localStorage.getItem('orderType')
-    if (locationId && orderType) {
-      router.push('/menu')
-    } else {
-      onOrderClick()
-    }
   }
 
   return (
@@ -125,7 +110,6 @@ export default function FeaturedItems({ onOrderClick }: FeaturedItemsProps) {
                     ${(item.base_price ?? item.price).toFixed(2)}
                   </span>
                   <button
-                    onClick={e => { e.stopPropagation(); handleItemClick(item) }}
                     className="w-8 h-8 rounded-full text-white flex items-center justify-center text-lg font-bold hover:scale-110 transition-transform"
                     style={{background: 'var(--color-primary)'}}>
                     +
@@ -138,8 +122,12 @@ export default function FeaturedItems({ onOrderClick }: FeaturedItemsProps) {
 
         <div className="text-center mt-10">
           <button
-            onClick={handleViewMenu}
-            className="px-8 py-3 rounded-full font-semibold border-2 transition-all hover:bg-yellow-50"
+            onClick={() => {
+              const location = localStorage.getItem('selectedLocationName')
+              if (location) router.push('/menu')
+              else onOrderClick()
+            }}
+            className="px-8 py-3 rounded-full font-semibold border-2 transition-all hover:bg-orange-50"
             style={{borderColor: 'var(--color-primary)', color: 'var(--color-primary)'}}>
             View Full Menu
           </button>
