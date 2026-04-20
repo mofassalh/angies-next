@@ -113,13 +113,13 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm" onClick={onClose} />
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
+      style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}>
+      <div className="absolute inset-0" onClick={onClose} />
 
       <div className="relative bg-white w-full sm:max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl z-10 max-h-[90vh] overflow-y-auto">
 
-        <div className="h-48 flex items-center justify-center relative overflow-hidden"
-          style={{background: 'linear-gradient(135deg, #FFF7F4, #FFF0EA)'}}>
+        <div className="h-48 flex items-center justify-center relative overflow-hidden bg-gray-50">
           {product.image_url ? (
             <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
           ) : (
@@ -163,11 +163,11 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                         <button key={option.name}
                           onClick={() => selectOption(section.name, option, section.type, section.max)}
                           className={`w-full flex items-center justify-between p-3 rounded-xl border-2 transition-all ${
-                            isSelected ? 'border-orange-400 bg-orange-50' : 'border-gray-100 hover:border-gray-200'
+                            isSelected ? 'border-yellow-400 bg-yellow-50' : 'border-gray-100 hover:border-gray-200'
                           }`}>
                           <div className="flex items-center gap-3">
                             <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
-                              isSelected ? 'border-orange-400' : 'border-gray-300'
+                              isSelected ? 'border-yellow-400' : 'border-gray-300'
                             }`}>
                               {isSelected && (
                                 <div className="w-2.5 h-2.5 rounded-full" style={{background: 'var(--color-primary)'}} />
@@ -212,7 +212,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
           <div className="grid grid-cols-2 gap-3 mt-4">
             <button onClick={handleAddMore}
               disabled={added}
-              className="py-3 rounded-full font-semibold border-2 transition-all hover:bg-orange-50 disabled:opacity-60"
+              className="py-3 rounded-full font-semibold border-2 transition-all hover:bg-yellow-50 disabled:opacity-60"
               style={{borderColor: added ? '#10B981' : 'var(--color-primary)', color: added ? '#10B981' : 'var(--color-primary)'}}>
               {added ? '✓ Added!' : 'Add More'}
             </button>
