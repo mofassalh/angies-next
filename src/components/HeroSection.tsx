@@ -23,7 +23,7 @@ export default function HeroSection({ onOrderClick }: HeroProps) {
       </video>
 
       {/* Dark overlay */}
-      <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.2) 100%)', zIndex: 1 }} />
+      <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.75) 50%, rgba(0,0,0,0.55) 100%)', zIndex: 1 }} />
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 w-full relative" style={{ zIndex: 2 }}>
