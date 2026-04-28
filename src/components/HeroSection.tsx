@@ -4,89 +4,77 @@ interface HeroProps {
   onOrderClick: () => void
 }
 
+const VIDEO_URL = 'https://egyxvzjfqnpcfdnwusxn.supabase.co/storage/v1/object/public/menu-images/hero-video.mp4'
+
 export default function HeroSection({ onOrderClick }: HeroProps) {
   return (
-    <section className="pt-16 min-h-screen flex items-center relative overflow-hidden" style={{background: 'linear-gradient(135deg, #FFFDF0 0%, #FFF9D6 50%, #FFFEF5 100%)'}}>
+    <section className="pt-16 min-h-screen flex items-center relative overflow-hidden">
 
-      <div className="absolute top-20 right-0 w-96 h-96 rounded-full opacity-20" style={{background: 'var(--color-primary)', filter: 'blur(80px)'}}></div>
-      <div className="absolute bottom-20 left-0 w-64 h-64 rounded-full opacity-10" style={{background: 'var(--color-primary)', filter: 'blur(60px)'}}></div>
+      {/* Video Background */}
+      <video
+        autoPlay
+        muted
+        loop
+        playsInline
+        className="absolute inset-0 w-full h-full object-cover"
+        style={{ zIndex: 0 }}
+      >
+        <source src={VIDEO_URL} type="video/mp4" />
+      </video>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 w-full">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      {/* Dark overlay */}
+      <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.2) 100%)', zIndex: 1 }} />
 
-          <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold mb-6" style={{background: '#FFF3B0', color: '#1A1A1A'}}>
-              <span className="w-1.5 h-1.5 rounded-full" style={{background: 'var(--color-primary)'}}></span>
-              Now open in 3 Melbourne locations
-            </div>
+      {/* Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 w-full relative" style={{ zIndex: 2 }}>
+        <div className="max-w-2xl">
 
-            <h1 className="text-5xl lg:text-6xl font-bold leading-tight mb-6" style={{fontFamily: 'var(--font-display)'}}>
-              Fresh &{' '}
-              <span style={{color: '#D4A900'}}>Flavourful</span>
-              <br />
-              Every Time
-            </h1>
-
-            <p className="text-lg text-gray-500 mb-8 leading-relaxed max-w-md">
-              Handcrafted kebabs and gourmet burgers made with the freshest ingredients. Order online for pickup or delivery across Melbourne.
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-4">
-              <button
-                onClick={onOrderClick}
-                className="px-8 py-4 rounded-full font-semibold text-base transition-all hover:shadow-lg hover:scale-105 active:scale-95"
-                style={{background: 'var(--color-primary)', color: '#1A1A1A'}}
-              >
-                Order Now
-              </button>
-              <button
-                onClick={onOrderClick}
-                className="px-8 py-4 rounded-full font-semibold text-base border-2 transition-all hover:bg-yellow-50"
-                style={{borderColor: 'var(--color-primary)', color: '#1A1A1A'}}
-              >
-                View Menu
-              </button>
-            </div>
-
-            <div className="flex gap-8 mt-12 pt-8 border-t border-yellow-100">
-              <div>
-                <div className="text-2xl font-bold" style={{fontFamily: 'var(--font-display)'}}>3</div>
-                <div className="text-sm text-gray-500">Locations</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold" style={{fontFamily: 'var(--font-display)'}}>50+</div>
-                <div className="text-sm text-gray-500">Menu Items</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold" style={{fontFamily: 'var(--font-display)'}}>4.8★</div>
-                <div className="text-sm text-gray-500">Rating</div>
-              </div>
-            </div>
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold mb-6"
+            style={{ background: 'rgba(245,200,0,0.2)', color: '#F5C800', border: '0.5px solid rgba(245,200,0,0.4)' }}>
+            <span className="w-1.5 h-1.5 rounded-full" style={{ background: '#F5C800' }}></span>
+            100% Halal · 3 Melbourne locations
           </div>
 
-          <div className="relative flex justify-center items-center">
-            <div className="w-80 h-80 lg:w-96 lg:h-96 rounded-full flex items-center justify-center relative" style={{background: 'linear-gradient(135deg, #FFF3B0, #FFE566)'}}>
-              <div className="text-center">
-                <div className="text-8xl mb-4">🌯</div>
-                <div className="text-lg font-semibold text-gray-700">Angie's Special</div>
-                <div className="text-sm text-gray-500">Kebab & Burger</div>
-              </div>
+          <h1 className="text-5xl lg:text-6xl font-bold leading-tight mb-6 text-white" style={{ fontFamily: 'var(--font-display)' }}>
+            Fresh &{' '}
+            <span style={{ color: '#F5C800' }}>Flavourful</span>
+            <br />
+            Every Time
+          </h1>
 
-              <div className="absolute -top-4 -right-4 bg-white rounded-2xl shadow-lg p-3 flex items-center gap-2">
-                <span className="text-2xl">🍔</span>
-                <div>
-                  <div className="text-xs font-bold text-gray-800">Gourmet Burger</div>
-                  <div className="text-xs text-gray-400">From $12.90</div>
-                </div>
-              </div>
+          <p className="text-lg mb-8 leading-relaxed max-w-md" style={{ color: 'rgba(255,255,255,0.75)' }}>
+            Handcrafted kebabs and gourmet burgers made with the freshest ingredients. Order online for pickup or delivery across Melbourne.
+          </p>
 
-              <div className="absolute -bottom-4 -left-4 bg-white rounded-2xl shadow-lg p-3 flex items-center gap-2">
-                <span className="text-2xl">🥙</span>
-                <div>
-                  <div className="text-xs font-bold text-gray-800">Kebab Plate</div>
-                  <div className="text-xs text-gray-400">From $14.90</div>
-                </div>
-              </div>
+          <div className="flex flex-col sm:flex-row gap-4">
+            <button
+              onClick={onOrderClick}
+              className="px-8 py-4 rounded-full font-semibold text-base transition-all hover:shadow-lg hover:scale-105 active:scale-95"
+              style={{ background: '#F5C800', color: '#1A1A1A' }}
+            >
+              Order Now
+            </button>
+            <button
+              onClick={onOrderClick}
+              className="px-8 py-4 rounded-full font-semibold text-base transition-all hover:scale-105"
+              style={{ background: 'rgba(255,255,255,0.15)', color: 'white', border: '0.5px solid rgba(255,255,255,0.3)' }}
+            >
+              View Menu
+            </button>
+          </div>
+
+          <div className="flex gap-8 mt-12 pt-8" style={{ borderTop: '1px solid rgba(255,255,255,0.15)' }}>
+            <div>
+              <div className="text-2xl font-bold text-white" style={{ fontFamily: 'var(--font-display)' }}>3</div>
+              <div className="text-sm" style={{ color: 'rgba(255,255,255,0.6)' }}>Locations</div>
+            </div>
+            <div>
+              <div className="text-2xl font-bold text-white" style={{ fontFamily: 'var(--font-display)' }}>50+</div>
+              <div className="text-sm" style={{ color: 'rgba(255,255,255,0.6)' }}>Menu Items</div>
+            </div>
+            <div>
+              <div className="text-2xl font-bold text-white" style={{ fontFamily: 'var(--font-display)' }}>4.8★</div>
+              <div className="text-sm" style={{ color: 'rgba(255,255,255,0.6)' }}>Rating</div>
             </div>
           </div>
 
