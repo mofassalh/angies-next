@@ -4,7 +4,7 @@ interface HeroProps {
   onOrderClick: () => void
 }
 
-const VIDEO_URL = 'https://egyxvzjfqnpcfdnwusxn.supabase.co/storage/v1/object/public/menu-images/hero-video.mp4'
+const VIDEO_URL = 'https://egyxvzjfqnpcfdnwusxn.supabase.co/storage/v1/object/public/menu-images/hero-video.mp4?v=2'
 
 export default function HeroSection({ onOrderClick }: HeroProps) {
   return (
