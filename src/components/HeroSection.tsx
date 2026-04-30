@@ -4,46 +4,44 @@ interface HeroProps {
   onOrderClick: () => void
 }
 
-const VIDEO_URL = 'https://egyxvzjfqnpcfdnwusxn.supabase.co/storage/v1/object/public/menu-images/hero-video.mp4?v=2'
+const FOOD_IMAGES = [
+  'https://egyxvzjfqnpcfdnwusxn.supabase.co/storage/v1/object/public/menu-images/612103217_1812208489731214_5047258597166790035_n.jpg',
+  'https://egyxvzjfqnpcfdnwusxn.supabase.co/storage/v1/object/public/menu-images/605841416_1805166860435377_6175045538818271257_n.jpg',
+  'https://egyxvzjfqnpcfdnwusxn.supabase.co/storage/v1/object/public/menu-images/596798989_1790337771918286_1246755799281594482_n.jpg',
+  'https://egyxvzjfqnpcfdnwusxn.supabase.co/storage/v1/object/public/menu-images/587899805_1779383689680361_5420484393104563568_n.jpg',
+]
 
 export default function HeroSection({ onOrderClick }: HeroProps) {
   return (
-    <div>
-      <section className="pt-16 min-h-screen flex items-center relative overflow-hidden">
+    <section className="pt-16 min-h-screen flex items-center relative overflow-hidden"
+      style={{ background: 'linear-gradient(135deg, #FFFDF0 0%, #FFF9D6 50%, #FFFEF5 100%)' }}>
 
-        {/* Video Background */}
-        <video
-          autoPlay
-          muted
-          loop
-          playsInline
-          className="absolute inset-0 w-full h-full object-cover"
-          style={{ zIndex: 0 }}
-        >
-          <source src={VIDEO_URL} type="video/mp4" />
-        </video>
+      {/* Background blobs */}
+      <div className="absolute top-20 right-0 w-96 h-96 rounded-full opacity-20"
+        style={{ background: '#F5C800', filter: 'blur(80px)' }} />
+      <div className="absolute bottom-20 left-0 w-64 h-64 rounded-full opacity-10"
+        style={{ background: '#F5C800', filter: 'blur(60px)' }} />
 
-        {/* Dark overlay */}
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.15) 30%, rgba(0,0,0,0.88) 65%, rgba(0,0,0,0.96) 100%)', zIndex: 1 }} />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 w-full relative" style={{ zIndex: 1 }}>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
 
-        {/* Content */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 w-full relative" style={{ zIndex: 2 }}>
-          <div className="max-w-2xl">
-
+          {/* Left — Text */}
+          <div>
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold mb-6"
-              style={{ background: 'rgba(245,200,0,0.2)', color: '#F5C800', border: '0.5px solid rgba(245,200,0,0.4)' }}>
+              style={{ background: '#FFF3B0', color: '#1A1A1A' }}>
               <span className="w-1.5 h-1.5 rounded-full" style={{ background: '#F5C800' }}></span>
               100% Halal · 3 Melbourne locations
             </div>
 
-            <h1 className="text-5xl lg:text-6xl font-bold leading-tight mb-6 text-white" style={{ fontFamily: 'var(--font-display)' }}>
+            <h1 className="text-5xl lg:text-6xl font-bold leading-tight mb-6"
+              style={{ fontFamily: 'var(--font-display)', color: '#1A1A1A' }}>
               Fresh &{' '}
-              <span style={{ color: '#F5C800' }}>Flavourful</span>
+              <span style={{ color: '#D4A900' }}>Flavourful</span>
               <br />
               Every Time
             </h1>
 
-            <p className="text-lg mb-8 leading-relaxed max-w-md" style={{ color: 'rgba(255,255,255,0.75)' }}>
+            <p className="text-lg text-gray-500 mb-8 leading-relaxed max-w-md">
               Handcrafted kebabs and gourmet burgers made with the freshest ingredients. Order online for pickup or delivery across Melbourne.
             </p>
 
@@ -57,39 +55,81 @@ export default function HeroSection({ onOrderClick }: HeroProps) {
               </button>
               <button
                 onClick={onOrderClick}
-                className="px-8 py-4 rounded-full font-semibold text-base transition-all hover:scale-105"
-                style={{ background: 'rgba(255,255,255,0.15)', color: 'white', border: '0.5px solid rgba(255,255,255,0.3)' }}
+                className="px-8 py-4 rounded-full font-semibold text-base border-2 transition-all hover:bg-yellow-50"
+                style={{ borderColor: '#F5C800', color: '#1A1A1A' }}
               >
                 View Menu
               </button>
             </div>
 
-            <div className="flex gap-8 mt-12 pt-8" style={{ borderTop: '1px solid rgba(255,255,255,0.15)' }}>
+            <div className="flex gap-8 mt-12 pt-8 border-t border-yellow-100">
               <div>
-                <div className="text-2xl font-bold text-white" style={{ fontFamily: 'var(--font-display)' }}>3</div>
-                <div className="text-sm" style={{ color: 'rgba(255,255,255,0.6)' }}>Locations</div>
+                <div className="text-2xl font-bold" style={{ fontFamily: 'var(--font-display)' }}>3</div>
+                <div className="text-sm text-gray-500">Locations</div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-white" style={{ fontFamily: 'var(--font-display)' }}>50+</div>
-                <div className="text-sm" style={{ color: 'rgba(255,255,255,0.6)' }}>Menu Items</div>
+                <div className="text-2xl font-bold" style={{ fontFamily: 'var(--font-display)' }}>50+</div>
+                <div className="text-sm text-gray-500">Menu Items</div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-white" style={{ fontFamily: 'var(--font-display)' }}>4.8★</div>
-                <div className="text-sm" style={{ color: 'rgba(255,255,255,0.6)' }}>Rating</div>
+                <div className="text-2xl font-bold" style={{ fontFamily: 'var(--font-display)' }}>4.8★</div>
+                <div className="text-sm text-gray-500">Rating</div>
               </div>
             </div>
-
           </div>
-        </div>
 
-        {/* Wave transition */}
-        <div className="absolute bottom-0 left-0 right-0" style={{ zIndex: 3 }}>
-          <svg viewBox="0 0 1440 80" preserveAspectRatio="none" style={{ display: 'block', width: '100%', height: '80px' }}>
-            <path d="M0,0 L1440,0 L1440,20 Q1080,80 720,60 Q360,40 0,70 Z" fill="white"/>
-          </svg>
-        </div>
+          {/* Right — Food Collage */}
+          <div className="relative flex justify-center items-center">
+            {/* Main big image */}
+            <div className="relative w-72 h-72 lg:w-96 lg:h-96">
 
-      </section>
-    </div>
+              {/* Big circle background */}
+              <div className="absolute inset-0 rounded-full"
+                style={{ background: 'linear-gradient(135deg, #FFF3B0, #FFE566)' }} />
+
+              {/* Center main image */}
+              <div className="absolute inset-4 rounded-full overflow-hidden shadow-2xl">
+                <img src={FOOD_IMAGES[0]} alt="food" className="w-full h-full object-cover" />
+              </div>
+
+              {/* Top right small */}
+              <div className="absolute -top-2 -right-2 w-24 h-24 rounded-2xl overflow-hidden shadow-xl border-4 border-white">
+                <img src={FOOD_IMAGES[1]} alt="food" className="w-full h-full object-cover" />
+              </div>
+
+              {/* Bottom left small */}
+              <div className="absolute -bottom-2 -left-2 w-24 h-24 rounded-2xl overflow-hidden shadow-xl border-4 border-white">
+                <img src={FOOD_IMAGES[2]} alt="food" className="w-full h-full object-cover" />
+              </div>
+
+              {/* Bottom right small */}
+              <div className="absolute -bottom-4 right-8 w-20 h-20 rounded-2xl overflow-hidden shadow-lg border-4 border-white">
+                <img src={FOOD_IMAGES[3]} alt="food" className="w-full h-full object-cover" />
+              </div>
+
+              {/* Floating badge top left */}
+              <div className="absolute -top-4 left-4 bg-white rounded-2xl shadow-lg px-3 py-2 flex items-center gap-2">
+                <span className="text-xl">🔥</span>
+                <div>
+                  <div className="text-xs font-bold text-gray-800">Most Popular</div>
+                  <div className="text-xs text-gray-400">Kebab Plate</div>
+                </div>
+              </div>
+
+              {/* Floating badge bottom */}
+              <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 bg-white rounded-2xl shadow-lg px-3 py-2 flex items-center gap-2 whitespace-nowrap">
+                <span className="text-xl">⭐</span>
+                <div>
+                  <div className="text-xs font-bold text-gray-800">4.8 Rating</div>
+                  <div className="text-xs text-gray-400">500+ reviews</div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
   )
 }
