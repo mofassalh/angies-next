@@ -3,19 +3,78 @@ import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Navbar from '@/components/Navbar'
+import { createClient } from '@/lib/supabase'
 
 function OrderConfirmedContent() {
   const searchParams = useSearchParams()
   const orderNumber = searchParams.get('order') || ''
+  const orderId = searchParams.get('id') || ''
   const [orderType, setOrderType] = useState<string>('pickup')
   const [locationName, setLocationName] = useState<string>('')
+  const [pointsEarned, setPointsEarned] = useState<number>(0)
 
   useEffect(() => {
     const savedType = localStorage.getItem('orderType')
     const savedLocation = localStorage.getItem('selectedLocationName')
     if (savedType) setOrderType(savedType)
     if (savedLocation) setLocationName(savedLocation)
-  }, [])
+
+    // Add loyalty points
+    const addPoints = async () => {
+      if (!orderId) return
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      // Check if points already added for this order
+      const { data: existing } = await supabase
+        .from('loyalty_points')
+        .select('id')
+        .eq('order_id', orderId)
+        .single()
+      if (existing) return
+
+      // Get order total
+      const { data: order } = await supabase
+        .from('orders')
+        .select('total')
+        .eq('id', orderId)
+        .single()
+      if (!order) return
+
+      // Get points per dollar setting
+      const { data: setting } = await supabase
+        .from('settings')
+        .select('value')
+        .eq('key', 'points_per_dollar')
+        .single()
+      const ptsPerDollar = parseFloat(setting?.value || '1')
+      const pts = Math.floor(order.total * ptsPerDollar)
+      if (pts <= 0) return
+
+      // Add points
+      await supabase.from('loyalty_points').insert({
+        user_id: user.id,
+        order_id: orderId,
+        points: pts,
+        type: 'earn',
+        description: `Order ${orderNumber} — earned ${pts} points`,
+      })
+
+      // Update total points in profile
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('total_points')
+        .eq('id', user.id)
+        .single()
+      const newTotal = (profile?.total_points || 0) + pts
+      await supabase.from('profiles').upsert({ id: user.id, total_points: newTotal })
+
+      setPointsEarned(pts)
+    }
+
+    addPoints()
+  }, [orderId])
 
   const estTime = orderType === 'delivery' ? '30-45 minutes' : '15-20 minutes'
   const typeLabel = orderType === 'delivery' ? '🛵 Delivery' : '🏃 Pickup'
@@ -34,6 +93,22 @@ function OrderConfirmedContent() {
           <p className="text-gray-500 mb-6">
             Thank you! We'll start preparing your order right away.
           </p>
+
+          {/* Points earned */}
+          {pointsEarned > 0 && (
+            <div className="rounded-2xl p-4 mb-4 flex items-center gap-3"
+              style={{ background: '#FFF9E0', border: '1px solid #E8C84A' }}>
+              <span className="text-2xl">⭐</span>
+              <div className="text-left">
+                <div className="font-semibold text-sm" style={{ color: '#8A6800' }}>
+                  You earned {pointsEarned} loyalty points!
+                </div>
+                <div className="text-xs mt-0.5" style={{ color: '#B8960A' }}>
+                  Keep ordering to unlock rewards
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="bg-gray-50 rounded-2xl p-4 mb-6 text-left space-y-3">
             {orderNumber && (
@@ -63,24 +138,18 @@ function OrderConfirmedContent() {
           </div>
 
           <div className="space-y-3">
-            <Link
-              href="/orders"
+            <Link href="/orders"
               className="w-full py-3 rounded-full text-white font-semibold block transition-all hover:shadow-lg"
-              style={{background: 'var(--color-primary)'}}
-            >
+              style={{background: 'var(--color-primary)'}}>
               Track My Order
             </Link>
-            <Link
-              href="/menu"
-              className="w-full py-3 rounded-full font-semibold block border-2 transition-all hover:bg-orange-50"
-              style={{borderColor: 'var(--color-primary)', color: 'var(--color-primary)'}}
-            >
+            <Link href="/menu"
+              className="w-full py-3 rounded-full font-semibold block border-2 transition-all hover:bg-yellow-50"
+              style={{borderColor: 'var(--color-primary)', color: 'var(--color-primary)'}}>
               Order More
             </Link>
-            <Link
-              href="/"
-              className="w-full py-3 rounded-full font-semibold block text-gray-400 hover:text-gray-600 transition-all"
-            >
+            <Link href="/"
+              className="w-full py-3 rounded-full font-semibold block text-gray-400 hover:text-gray-600 transition-all">
               Back to Home
             </Link>
           </div>

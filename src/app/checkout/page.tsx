@@ -83,7 +83,7 @@ export default function CheckoutPage() {
 
     const { data: userData } = await supabase.auth.getUser()
 
-    const { error } = await supabase.from('orders').insert({
+    const { data: orderData, error } = await supabase.from('orders').insert({
       order_number: orderNumber,
       customer_name: form.name,
       customer_phone: form.phone,
@@ -98,7 +98,7 @@ export default function CheckoutPage() {
       status: 'pending',
       notes: form.notes,
       user_id: userData.user?.id || null,
-    })
+    }).select().single()
 
     if (error) {
       alert('Something went wrong. Please try again.')
@@ -107,7 +107,7 @@ export default function CheckoutPage() {
     }
 
     clearCart()
-    router.push(`/order-confirmed?order=${orderNumber}`)
+    router.push(`/order-confirmed?order=${orderNumber}&id=${orderData?.id || ''}`)
   }
 
   return (
