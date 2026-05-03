@@ -16,6 +16,8 @@ interface MenuItem {
   available: boolean
   location: string
   customizations: any[]
+  is_popular?: boolean
+  is_special?: boolean
 }
 
 export default function MenuPage() {
@@ -150,6 +152,14 @@ export default function MenuPage() {
                         {getEmoji(item.name)}
                       </span>
                     )}
+                    <div className="absolute top-2 left-2 flex flex-col gap-1">
+                      {item.is_popular && (
+                        <span className="px-2 py-0.5 rounded-full text-xs font-semibold" style={{background:'#F5C800', color:'#1A1A1A'}}>⭐ Popular</span>
+                      )}
+                      {item.is_special && (
+                        <span className="px-2 py-0.5 rounded-full text-xs font-semibold" style={{background:'#22c55e', color:'white'}}>🎯 Special</span>
+                      )}
+                    </div>
                   </div>
                   <div className="p-4">
                     <h3 className="font-bold text-gray-900 mb-1">{item.name}</h3>

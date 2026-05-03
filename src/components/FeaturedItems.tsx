@@ -32,7 +32,8 @@ export default function FeaturedItems({ onOrderClick }: FeaturedItemsProps) {
         .from('menu_items')
         .select('*')
         .eq('available', true)
-        .limit(4)
+        .eq('is_popular', true)
+        .limit(8)
       if (data) setItems(data)
     }
     fetchItems()
