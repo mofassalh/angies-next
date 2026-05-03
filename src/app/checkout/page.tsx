@@ -13,6 +13,10 @@ export default function CheckoutPage() {
   const [orderType, setOrderType] = useState<'pickup' | 'delivery'>('pickup')
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
+  const [couponCode, setCouponCode] = useState('')
+  const [coupon, setCoupon] = useState<any>(null)
+  const [couponError, setCouponError] = useState('')
+  const [applyingCoupon, setApplyingCoupon] = useState(false)
   const [form, setForm] = useState({
     name: '', phone: '', email: '',
     address: '', suburb: '', postcode: '', notes: '',
@@ -62,7 +66,39 @@ export default function CheckoutPage() {
   }
 
   const deliveryFee = orderType === 'delivery' ? 5.00 : 0
-  const finalTotal = getTotal() + deliveryFee
+  const finalTotal = Math.max(0, getTotal() + deliveryFee - getDiscount())
+
+  const applyCoupon = async () => {
+    if (!couponCode) return
+    setApplyingCoupon(true)
+    setCouponError('')
+    setCoupon(null)
+    const supabase = createClient()
+    const { data } = await supabase
+      .from('promotions')
+      .select('*')
+      .eq('code', couponCode.toUpperCase())
+      .eq('is_active', true)
+      .single()
+    if (!data) {
+      setCouponError('Invalid or expired coupon code')
+    } else if (data.expires_at && new Date(data.expires_at) < new Date()) {
+      setCouponError('This coupon has expired')
+    } else if (data.max_uses && data.used_count >= data.max_uses) {
+      setCouponError('This coupon has reached its usage limit')
+    } else if (data.min_order && getTotal() < data.min_order) {
+      setCouponError(`Minimum order $${data.min_order} required`)
+    } else {
+      setCoupon(data)
+    }
+    setApplyingCoupon(false)
+  }
+
+  const getDiscount = () => {
+    if (!coupon) return 0
+    if (coupon.type === 'percent') return (getTotal() * coupon.value) / 100
+    return Math.min(coupon.value, getTotal())
+  }
 
   const handleSubmit = async () => {
     setLoading(true)
@@ -95,6 +131,7 @@ export default function CheckoutPage() {
       location: locationName,
       items: orderItems,
       total: finalTotal,
+      coupon_code: coupon?.code || null,
       status: 'pending',
       notes: form.notes,
       user_id: userData.user?.id || null,
@@ -106,6 +143,10 @@ export default function CheckoutPage() {
       return
     }
 
+    // Update coupon used count
+    if (coupon) {
+      await supabase.from('promotions').update({ used_count: (coupon.used_count || 0) + 1 }).eq('id', coupon.id)
+    }
     clearCart()
     router.push(`/order-confirmed?order=${orderNumber}&id=${orderData?.id || ''}`)
   }
@@ -226,6 +267,42 @@ export default function CheckoutPage() {
                     rows={3} placeholder="Any special requests or allergies?" />
                 </div>
 
+                <div className="bg-white rounded-2xl border border-gray-100 p-5">
+                  <h3 className="font-semibold text-gray-900 mb-3">🏷️ Coupon Code</h3>
+                  {coupon ? (
+                    <div className="flex items-center justify-between p-3 rounded-xl"
+                      style={{ background: '#f0fdf4', border: '1px solid #86efac' }}>
+                      <div>
+                        <div className="font-semibold text-sm" style={{ color: '#15803d' }}>
+                          {coupon.code} applied!
+                        </div>
+                        <div className="text-xs mt-0.5" style={{ color: '#86efac' }}>
+                          {coupon.type === 'percent' ? `${coupon.value}% off` : `$${coupon.value} off`}
+                        </div>
+                      </div>
+                      <button onClick={() => { setCoupon(null); setCouponCode('') }}
+                        className="text-xs px-3 py-1.5 rounded-lg"
+                        style={{ border: '1px solid #86efac', color: '#15803d' }}>
+                        Remove
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <input value={couponCode}
+                        onChange={e => { setCouponCode(e.target.value.toUpperCase()); setCouponError('') }}
+                        placeholder="Enter coupon code"
+                        className="flex-1 px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-orange-400 uppercase"
+                      />
+                      <button onClick={applyCoupon} disabled={applyingCoupon || !couponCode}
+                        className="px-4 py-2.5 rounded-xl text-sm font-semibold disabled:opacity-50"
+                        style={{ background: 'var(--color-primary)', color: '#1a1a1a' }}>
+                        {applyingCoupon ? '...' : 'Apply'}
+                      </button>
+                    </div>
+                  )}
+                  {couponError && <p className="text-xs mt-2" style={{ color: '#dc2626' }}>{couponError}</p>}
+                </div>
+
                 <button onClick={() => setStep(2)}
                   disabled={!form.name || !form.phone || !form.email}
                   className="w-full py-4 rounded-full text-white font-semibold transition-all hover:shadow-lg disabled:opacity-50"
@@ -263,6 +340,12 @@ export default function CheckoutPage() {
                     <div className="flex justify-between text-gray-500"><span>GST (10%)</span><span>${getGST().toFixed(2)}</span></div>
                     {orderType === 'delivery' && (
                       <div className="flex justify-between text-gray-500"><span>Delivery Fee</span><span>${deliveryFee.toFixed(2)}</span></div>
+                    )}
+                    {coupon && (
+                      <div className="flex justify-between" style={{ color: '#15803d' }}>
+                        <span>Discount ({coupon.code})</span>
+                        <span>-${getDiscount().toFixed(2)}</span>
+                      </div>
                     )}
                     <div className="flex justify-between font-bold text-gray-900 text-base pt-1 border-t border-gray-100">
                       <span>Total</span><span>${finalTotal.toFixed(2)}</span>
@@ -303,6 +386,11 @@ export default function CheckoutPage() {
                   </div>
                 ))}
               </div>
+              {coupon && (
+                <div className="flex justify-between text-xs mt-2" style={{ color: '#15803d' }}>
+                  <span>{coupon.code}</span><span>-${getDiscount().toFixed(2)}</span>
+                </div>
+              )}
               <div className="border-t border-gray-100 mt-3 pt-3 flex justify-between font-bold">
                 <span>Total</span>
                 <span style={{color: 'var(--color-primary)'}}>${finalTotal.toFixed(2)}</span>
