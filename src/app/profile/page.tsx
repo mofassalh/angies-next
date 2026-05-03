@@ -9,6 +9,7 @@ import { Save, LogOut, Camera } from 'lucide-react'
 export default function ProfilePage() {
   const [user, setUser] = useState<any>(null)
   const [profile, setProfile] = useState({ full_name:'', phone:'', address:'' })
+  const [totalPoints, setTotalPoints] = useState(0)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -24,7 +25,10 @@ export default function ProfilePage() {
         supabase.from('profiles').select('*').eq('id', data.user.id).single(),
         supabase.from('orders').select('*').eq('user_id', data.user.id),
       ])
-      if (profileData) setProfile({ full_name: profileData.full_name||'', phone: profileData.phone||'', address: profileData.address||'' })
+      if (profileData) {
+        setProfile({ full_name: profileData.full_name||'', phone: profileData.phone||'', address: profileData.address||'' })
+        setTotalPoints(profileData.total_points || 0)
+      }
       if (ordersData && ordersData.length > 0) {
         const spent = ordersData.reduce((s: number, o: any) => s + o.total, 0)
         // favourite item
@@ -106,6 +110,21 @@ export default function ProfilePage() {
           <div className="bg-white rounded-2xl p-4 border border-gray-100 text-center">
             <div className="text-lg font-bold text-gray-900 truncate">{orderStats.favourite || '—'}</div>
             <div className="text-xs text-gray-400 mt-1">Fav Item</div>
+          </div>
+        </div>
+        {/* Loyalty Points */}
+        <div className="bg-white rounded-2xl p-4 border border-gray-100 mb-4 flex items-center gap-4"
+          style={{ background: 'linear-gradient(135deg, #FFFBE6, #FFF9E0)', border: '1px solid #E8C84A' }}>
+          <div className="text-3xl">⭐</div>
+          <div className="flex-1">
+            <div className="font-bold text-lg" style={{ color: '#8A6800' }}>{totalPoints} Points</div>
+            <div className="text-xs mt-0.5" style={{ color: '#B8960A' }}>Earn 1 point per $1 spent</div>
+          </div>
+          <div className="text-right">
+            <div className="text-xs font-medium" style={{ color: '#8A6800' }}>
+              Worth ${(totalPoints / 100).toFixed(2)}
+            </div>
+            <div className="text-xs mt-0.5" style={{ color: '#B8960A' }}>in rewards</div>
           </div>
         </div>
 
