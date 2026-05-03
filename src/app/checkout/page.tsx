@@ -65,9 +65,6 @@ export default function CheckoutPage() {
     )
   }
 
-  const deliveryFee = orderType === 'delivery' ? 5.00 : 0
-  const finalTotal = Math.max(0, getTotal() + deliveryFee - getDiscount())
-
   const applyCoupon = async () => {
     if (!couponCode) return
     setApplyingCoupon(true)
@@ -99,6 +96,14 @@ export default function CheckoutPage() {
     if (coupon.type === 'percent') return (getTotal() * coupon.value) / 100
     return Math.min(coupon.value, getTotal())
   }
+
+  const deliveryFeeValVal = orderType === 'delivery' ? 5.00 : 0
+  const getDiscount = () => {
+    if (!coupon) return 0
+    if (coupon.type === 'percent') return (getTotal() * coupon.value) / 100
+    return Math.min(coupon.value, getTotal())
+  }
+  const finalTotal = Math.max(0, getTotal() + deliveryFeeValVal - getDiscount())
 
   const handleSubmit = async () => {
     setLoading(true)
@@ -339,7 +344,7 @@ export default function CheckoutPage() {
                     <div className="flex justify-between text-gray-500"><span>Subtotal</span><span>${getSubtotal().toFixed(2)}</span></div>
                     <div className="flex justify-between text-gray-500"><span>GST (10%)</span><span>${getGST().toFixed(2)}</span></div>
                     {orderType === 'delivery' && (
-                      <div className="flex justify-between text-gray-500"><span>Delivery Fee</span><span>${deliveryFee.toFixed(2)}</span></div>
+                      <div className="flex justify-between text-gray-500"><span>Delivery Fee</span><span>${deliveryFeeVal.toFixed(2)}</span></div>
                     )}
                     {coupon && (
                       <div className="flex justify-between" style={{ color: '#15803d' }}>
