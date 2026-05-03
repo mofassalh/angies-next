@@ -90,20 +90,13 @@ export default function CheckoutPage() {
     }
     setApplyingCoupon(false)
   }
-
+  const deliveryFeeVal = orderType === 'delivery' ? 5.00 : 0
   const getDiscount = () => {
     if (!coupon) return 0
     if (coupon.type === 'percent') return (getTotal() * coupon.value) / 100
     return Math.min(coupon.value, getTotal())
   }
-
-  const deliveryFeeValVal = orderType === 'delivery' ? 5.00 : 0
-  const getDiscount = () => {
-    if (!coupon) return 0
-    if (coupon.type === 'percent') return (getTotal() * coupon.value) / 100
-    return Math.min(coupon.value, getTotal())
-  }
-  const finalTotal = Math.max(0, getTotal() + deliveryFeeValVal - getDiscount())
+  const finalTotal = Math.max(0, getTotal() + deliveryFeeVal - getDiscount())
 
   const handleSubmit = async () => {
     setLoading(true)
