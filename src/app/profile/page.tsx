@@ -13,6 +13,7 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [editing, setEditing] = useState(false)
   const [orderStats, setOrderStats] = useState({ total:0, spent:0, favourite:'' })
   const router = useRouter()
 
@@ -51,6 +52,7 @@ export default function ProfilePage() {
     await supabase.from('profiles').upsert({ id: user.id, ...profile, updated_at: new Date().toISOString() })
     setSaving(false)
     setSaved(true)
+    setEditing(false)
     setTimeout(() => setSaved(false), 2000)
   }
 
@@ -130,39 +132,72 @@ export default function ProfilePage() {
 
         {/* Edit Profile */}
         <div className="bg-white rounded-3xl border border-gray-100 p-6 mb-4">
-          <h3 className="font-semibold text-gray-900 mb-4">Personal Info</h3>
-          <div className="space-y-3">
-            <div>
-              <label className="text-sm text-gray-500 mb-1 block">Full Name</label>
-              <input value={profile.full_name}
-                onChange={e => setProfile(p => ({...p, full_name: e.target.value}))}
-                placeholder="Your full name"
-                className="w-full px-4 py-3 rounded-xl text-sm outline-none"
-                style={{border:'1px solid #e5e5e5', color:'#1a1a1a'}} />
-            </div>
-            <div>
-              <label className="text-sm text-gray-500 mb-1 block">Phone</label>
-              <input value={profile.phone}
-                onChange={e => setProfile(p => ({...p, phone: e.target.value}))}
-                placeholder="+61 4XX XXX XXX"
-                className="w-full px-4 py-3 rounded-xl text-sm outline-none"
-                style={{border:'1px solid #e5e5e5', color:'#1a1a1a'}} />
-            </div>
-            <div>
-              <label className="text-sm text-gray-500 mb-1 block">Default Address</label>
-              <input value={profile.address}
-                onChange={e => setProfile(p => ({...p, address: e.target.value}))}
-                placeholder="123 Main St, Melbourne"
-                className="w-full px-4 py-3 rounded-xl text-sm outline-none"
-                style={{border:'1px solid #e5e5e5', color:'#1a1a1a'}} />
-            </div>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold text-gray-900">Personal Info</h3>
+            {!editing && (
+              <button onClick={() => setEditing(true)}
+                className="text-sm px-4 py-1.5 rounded-xl font-medium transition-all"
+                style={{border:'1px solid #e5e5e5', color:'#555'}}>
+                Edit
+              </button>
+            )}
           </div>
-          <button onClick={handleSave} disabled={saving}
-            className="mt-5 w-full py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all"
-            style={{background: saved ? '#22c55e' : 'var(--color-primary)', color: saved ? 'white' : '#1a1a1a'}}>
-            <Save size={16} />
-            {saving ? 'Saving...' : saved ? 'Saved!' : 'Save Changes'}
-          </button>
+          {editing ? (
+            <div className="space-y-3">
+              <div>
+                <label className="text-sm text-gray-500 mb-1 block">Full Name</label>
+                <input value={profile.full_name}
+                  onChange={e => setProfile(p => ({...p, full_name: e.target.value}))}
+                  placeholder="Your full name"
+                  className="w-full px-4 py-3 rounded-xl text-sm outline-none"
+                  style={{border:'1px solid #e5e5e5', color:'#1a1a1a'}} />
+              </div>
+              <div>
+                <label className="text-sm text-gray-500 mb-1 block">Phone</label>
+                <input value={profile.phone}
+                  onChange={e => setProfile(p => ({...p, phone: e.target.value}))}
+                  placeholder="+61 4XX XXX XXX"
+                  className="w-full px-4 py-3 rounded-xl text-sm outline-none"
+                  style={{border:'1px solid #e5e5e5', color:'#1a1a1a'}} />
+              </div>
+              <div>
+                <label className="text-sm text-gray-500 mb-1 block">Default Address</label>
+                <input value={profile.address}
+                  onChange={e => setProfile(p => ({...p, address: e.target.value}))}
+                  placeholder="123 Main St, Melbourne"
+                  className="w-full px-4 py-3 rounded-xl text-sm outline-none"
+                  style={{border:'1px solid #e5e5e5', color:'#1a1a1a'}} />
+              </div>
+              <div className="flex gap-3 mt-2">
+                <button onClick={() => setEditing(false)}
+                  className="flex-1 py-3 rounded-xl text-sm font-semibold"
+                  style={{border:'1px solid #e5e5e5', color:'#555'}}>
+                  Cancel
+                </button>
+                <button onClick={handleSave} disabled={saving}
+                  className="flex-1 py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all"
+                  style={{background: saved ? '#22c55e' : 'var(--color-primary)', color: saved ? 'white' : '#1a1a1a'}}>
+                  <Save size={16} />
+                  {saving ? 'Saving...' : saved ? 'Saved!' : 'Save Changes'}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div className="flex justify-between py-2" style={{borderBottom:'1px solid #f5f5f5'}}>
+                <span className="text-sm text-gray-400">Full Name</span>
+                <span className="text-sm font-medium text-gray-900">{profile.full_name || '—'}</span>
+              </div>
+              <div className="flex justify-between py-2" style={{borderBottom:'1px solid #f5f5f5'}}>
+                <span className="text-sm text-gray-400">Phone</span>
+                <span className="text-sm font-medium text-gray-900">{profile.phone || '—'}</span>
+              </div>
+              <div className="flex justify-between py-2">
+                <span className="text-sm text-gray-400">Address</span>
+                <span className="text-sm font-medium text-gray-900 text-right max-w-48">{profile.address || '—'}</span>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Quick links */}
