@@ -13,7 +13,7 @@ const FOOD_IMAGES = [
 
 export default function HeroSection({ onOrderClick }: HeroProps) {
   return (
-    <section className="pt-16 min-h-screen flex items-center relative overflow-hidden"
+    <section className="pt-16 flex items-center relative overflow-hidden"
       style={{ background: 'linear-gradient(135deg, #FFFDF0 0%, #FFF9D6 50%, #FFFEF5 100%)' }}>
 
       {/* Background blobs */}
@@ -22,7 +22,7 @@ export default function HeroSection({ onOrderClick }: HeroProps) {
       <div className="absolute bottom-20 left-0 w-64 h-64 rounded-full opacity-10"
         style={{ background: '#F5C800', filter: 'blur(60px)' }} />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 w-full relative" style={{ zIndex: 1 }}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 w-full relative" style={{ zIndex: 1 }}>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
 
           {/* Left — Text */}
