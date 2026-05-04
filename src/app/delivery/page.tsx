@@ -3,27 +3,6 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Navbar from '@/components/Navbar'
 
-const PARTNERS = [
-  {
-    name: 'Uber Eats',
-    emoji: '🛵',
-    color: '#06C167',
-    url: 'https://www.ubereats.com/au/store/angies-kebabs-burgers',
-  },
-  {
-    name: 'DoorDash',
-    emoji: '🔴',
-    color: '#FF3008',
-    url: 'https://www.doordash.com',
-  },
-  {
-    name: 'Menulog',
-    emoji: '🟠',
-    color: '#FF8000',
-    url: 'https://www.menulog.com.au',
-  },
-]
-
 export default function DeliveryPage() {
   const router = useRouter()
   const [location, setLocation] = useState('')
@@ -33,35 +12,67 @@ export default function DeliveryPage() {
     if (saved) setLocation(saved)
   }, [])
 
+  const handleOrderDelivery = () => {
+    localStorage.setItem('orderType', 'delivery')
+    router.push('/menu')
+  }
+
+  const handleOrderPickup = () => {
+    localStorage.setItem('orderType', 'pickup')
+    router.push('/menu')
+  }
+
   return (
     <main className="min-h-screen bg-gray-50">
       <Navbar selectedLocation={location || null} onLocationClick={() => {}} />
       <div className="pt-16 max-w-md mx-auto px-4 py-10">
         <h1 className="text-3xl font-bold text-gray-900 mb-2" style={{fontFamily: 'var(--font-display)'}}>
-          Delivery
+          How would you like your order?
         </h1>
-        <p className="text-gray-500 mb-8">Choose a delivery partner to place your order</p>
+        <p className="text-gray-500 mb-8">Choose how you'd like to receive your order</p>
 
         <div className="space-y-3">
-          {PARTNERS.map(partner => (
-            <a key={partner.name} href={partner.url} target="_blank" rel="noopener noreferrer"
-              className="flex items-center justify-between w-full p-5 bg-white rounded-2xl border border-gray-100 hover:shadow-md transition-all hover:-translate-y-0.5">
-              <div className="flex items-center gap-4">
-                <span className="text-3xl">{partner.emoji}</span>
-                <span className="font-bold text-lg text-gray-900">{partner.name}</span>
+          {/* Delivery option */}
+          <button onClick={handleOrderDelivery}
+            className="flex items-center justify-between w-full p-5 bg-white rounded-2xl border-2 transition-all hover:shadow-md hover:-translate-y-0.5"
+            style={{ borderColor: 'var(--color-primary)' }}>
+            <div className="flex items-center gap-4">
+              <span className="text-3xl">🛵</span>
+              <div className="text-left">
+                <div className="font-bold text-lg text-gray-900">Delivery</div>
+                <div className="text-sm text-gray-500">30-45 mins · $5.00 delivery fee</div>
               </div>
-              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </a>
-          ))}
+            </div>
+            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+
+          {/* Pickup option */}
+          <button onClick={handleOrderPickup}
+            className="flex items-center justify-between w-full p-5 bg-white rounded-2xl border border-gray-100 transition-all hover:shadow-md hover:-translate-y-0.5">
+            <div className="flex items-center gap-4">
+              <span className="text-3xl">🏃</span>
+              <div className="text-left">
+                <div className="font-bold text-lg text-gray-900">Pickup</div>
+                <div className="text-sm text-gray-500">15-20 mins · Free</div>
+              </div>
+            </div>
+            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
         </div>
 
-        <button onClick={() => router.push('/menu')}
-          className="w-full mt-6 py-3 rounded-full font-semibold border-2 transition-all hover:bg-orange-50"
-          style={{borderColor: 'var(--color-primary)', color: 'var(--color-primary)'}}>
-          Order for Pickup instead
-        </button>
+        {location && (
+          <div className="mt-6 p-4 bg-white rounded-2xl border border-gray-100 flex items-center gap-3">
+            <span className="text-xl">📍</span>
+            <div>
+              <div className="text-xs text-gray-400">Selected Location</div>
+              <div className="font-semibold text-sm text-gray-900">{location}</div>
+            </div>
+          </div>
+        )}
       </div>
     </main>
   )
