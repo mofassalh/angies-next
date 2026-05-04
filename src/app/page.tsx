@@ -39,11 +39,7 @@ export default function Home() {
   const handleOrderType = (type: 'pickup' | 'delivery') => {
     localStorage.setItem('orderType', type)
     setShowOrderType(false)
-    if (type === 'pickup') {
-      router.push('/menu')
-    } else {
-      router.push('/delivery')
-    }
+    router.push('/menu')
   }
 
   return (
