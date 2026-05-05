@@ -18,6 +18,14 @@ export default function CheckoutPage() {
   const [coupon, setCoupon] = useState<any>(null)
   const [couponError, setCouponError] = useState('')
   const [applyingCoupon, setApplyingCoupon] = useState(false)
+  const [userId, setUserId] = useState<string | null>(null)
+
+  // Loyalty states
+  const [loyaltySettings, setLoyaltySettings] = useState<any>(null)
+  const [loyaltyPoints, setLoyaltyPoints] = useState(0)
+  const [usePoints, setUsePoints] = useState(false)
+  const [pointsToRedeem, setPointsToRedeem] = useState(0)
+
   const [form, setForm] = useState({
     name: '', phone: '', email: '',
     address: '', suburb: '', postcode: '', notes: '',
@@ -31,7 +39,7 @@ export default function CheckoutPage() {
     if (savedType) setOrderType(savedType as 'pickup' | 'delivery')
 
     const supabase = createClient()
-    supabase.auth.getUser().then(({ data }) => {
+    supabase.auth.getUser().then(async ({ data }) => {
       if (!data.user) {
         router.push('/login?redirect=/checkout')
       } else {
@@ -42,7 +50,25 @@ export default function CheckoutPage() {
           email: data.user?.email || '',
           phone: meta?.phone || '',
         }))
+        setUserId(data.user.id)
         setAuthChecked(true)
+
+        // Load loyalty settings
+        const { data: ls } = await supabase
+          .from('loyalty_settings')
+          .select('*')
+          .eq('restaurant_id', RESTAURANT_ID)
+          .single()
+        if (ls) setLoyaltySettings(ls)
+
+        // Load customer points
+        const { data: lp } = await supabase
+          .from('loyalty_points')
+          .select('points')
+          .eq('customer_id', data.user.id)
+          .eq('restaurant_id', RESTAURANT_ID)
+          .single()
+        if (lp) setLoyaltyPoints(lp.points)
       }
     })
   }, [])
@@ -94,18 +120,47 @@ export default function CheckoutPage() {
   }
 
   const deliveryFeeVal = orderType === 'delivery' ? 5.00 : 0
+
   const getDiscount = () => {
     if (!coupon) return 0
     if (coupon.type === 'percent') return (getTotal() * coupon.value) / 100
     return Math.min(coupon.value, getTotal())
   }
-  const finalTotal = Math.max(0, getTotal() + deliveryFeeVal - getDiscount())
+
+  // Loyalty calculations
+  const getPointsDiscount = () => {
+    if (!usePoints || !loyaltySettings || pointsToRedeem === 0) return 0
+    return pointsToRedeem / loyaltySettings.points_per_dollar_value
+  }
+
+  const getMaxRedeemablePoints = () => {
+    if (!loyaltySettings) return 0
+    const maxByPercent = Math.floor((getTotal() * loyaltySettings.max_discount_percent / 100) * loyaltySettings.points_per_dollar_value)
+    return Math.min(loyaltyPoints, maxByPercent)
+  }
+
+  const getPointsEarned = () => {
+    if (!loyaltySettings) return 0
+    return Math.floor(finalTotal * loyaltySettings.points_per_dollar)
+  }
+
+  const finalTotal = Math.max(0, getTotal() + deliveryFeeVal - getDiscount() - getPointsDiscount())
+
+  const handleTogglePoints = (checked: boolean) => {
+    setUsePoints(checked)
+    if (checked) {
+      const maxPoints = getMaxRedeemablePoints()
+      const redeemable = Math.max(0, Math.floor(maxPoints / loyaltySettings.points_per_dollar_value) * loyaltySettings.points_per_dollar_value)
+      setPointsToRedeem(redeemable > 0 ? Math.min(loyaltyPoints, redeemable * loyaltySettings.points_per_dollar_value / loyaltySettings.points_per_dollar_value) : getMaxRedeemablePoints())
+    } else {
+      setPointsToRedeem(0)
+    }
+  }
 
   const handleSubmit = async () => {
     setLoading(true)
     const supabase = createClient()
     const locationName = localStorage.getItem('selectedLocationName') || ''
-    const locationId = localStorage.getItem('selectedLocationId') || ''
     const orderNumber = `#${Math.floor(10000 + Math.random() * 90000)}`
 
     const orderItems = items.map(item => ({
@@ -148,6 +203,70 @@ export default function CheckoutPage() {
     if (coupon) {
       await supabase.from('promotions').update({ used_count: (coupon.used_count || 0) + 1 }).eq('id', coupon.id)
     }
+
+    // Handle loyalty points redeem
+    if (usePoints && pointsToRedeem > 0 && userId) {
+      await supabase.from('loyalty_points')
+        .update({
+          points: loyaltyPoints - pointsToRedeem,
+          total_redeemed: loyaltyPoints,
+          updated_at: new Date().toISOString()
+        })
+        .eq('customer_id', userId)
+        .eq('restaurant_id', RESTAURANT_ID)
+
+      await supabase.from('loyalty_transactions').insert({
+        customer_id: userId,
+        restaurant_id: RESTAURANT_ID,
+        order_id: orderData?.id,
+        type: 'redeem',
+        points: pointsToRedeem,
+        description: `Redeemed for order ${orderNumber}`,
+      })
+    }
+
+    // Earn points for this order
+    if (userId && loyaltySettings?.is_active) {
+      const earned = getPointsEarned()
+      const firstOrder = loyaltyPoints === 0
+      const totalEarned = earned + (firstOrder ? loyaltySettings.bonus_first_order : 0)
+
+      const { data: existing } = await supabase
+        .from('loyalty_points')
+        .select('id, points, total_earned')
+        .eq('customer_id', userId)
+        .eq('restaurant_id', RESTAURANT_ID)
+        .single()
+
+      if (existing) {
+        await supabase.from('loyalty_points')
+          .update({
+            points: (existing.points - (usePoints ? pointsToRedeem : 0)) + totalEarned,
+            total_earned: existing.total_earned + totalEarned,
+            updated_at: new Date().toISOString()
+          })
+          .eq('customer_id', userId)
+          .eq('restaurant_id', RESTAURANT_ID)
+      } else {
+        await supabase.from('loyalty_points').insert({
+          customer_id: userId,
+          restaurant_id: RESTAURANT_ID,
+          points: totalEarned,
+          total_earned: totalEarned,
+          total_redeemed: 0,
+        })
+      }
+
+      await supabase.from('loyalty_transactions').insert({
+        customer_id: userId,
+        restaurant_id: RESTAURANT_ID,
+        order_id: orderData?.id,
+        type: 'earn',
+        points: totalEarned,
+        description: firstOrder ? `Order ${orderNumber} + first order bonus` : `Order ${orderNumber}`,
+      })
+    }
+
     clearCart()
     router.push(`/order-confirmed?order=${orderNumber}&id=${orderData?.id || ''}`)
   }
@@ -304,6 +423,65 @@ export default function CheckoutPage() {
                   {couponError && <p className="text-xs mt-2" style={{ color: '#dc2626' }}>{couponError}</p>}
                 </div>
 
+                {/* Loyalty Points Section */}
+                {loyaltySettings?.is_active && loyaltyPoints >= loyaltySettings.min_points_redeem && (
+                  <div className="bg-white rounded-2xl border border-gray-100 p-5">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="font-semibold text-gray-900">⭐ Loyalty Points</h3>
+                      <span className="text-xs px-2.5 py-1 rounded-full font-semibold"
+                        style={{ background: '#FFF9E0', color: '#D4A900' }}>
+                        {loyaltyPoints} pts available
+                      </span>
+                    </div>
+                    <div className="p-3 rounded-xl mb-3" style={{ background: '#FFFBEB', border: '1px solid #FDE68A' }}>
+                      <div className="text-xs text-amber-700">
+                        {loyaltySettings.points_per_dollar_value} points = $1.00 discount •
+                        Max {loyaltySettings.max_discount_percent}% off per order
+                      </div>
+                    </div>
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <div className="relative">
+                        <input type="checkbox" className="sr-only" checked={usePoints}
+                          onChange={e => handleTogglePoints(e.target.checked)} />
+                        <div className="w-11 h-6 rounded-full transition-colors"
+                          style={{ background: usePoints ? 'var(--color-primary)' : '#E5E7EB' }}>
+                          <div className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform"
+                            style={{ transform: usePoints ? 'translateX(20px)' : 'translateX(0)' }} />
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium text-gray-900">
+                          Use {getMaxRedeemablePoints()} points
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          Save ${(getMaxRedeemablePoints() / loyaltySettings.points_per_dollar_value).toFixed(2)} on this order
+                        </div>
+                      </div>
+                    </label>
+                    {usePoints && (
+                      <div className="mt-3 p-3 rounded-xl flex justify-between items-center"
+                        style={{ background: '#f0fdf4', border: '1px solid #86efac' }}>
+                        <span className="text-sm font-medium" style={{ color: '#15803d' }}>Points discount applied!</span>
+                        <span className="font-bold" style={{ color: '#15803d' }}>
+                          -${getPointsDiscount().toFixed(2)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Points earn preview */}
+                {loyaltySettings?.is_active && (
+                  <div className="flex items-center gap-2 px-4 py-3 rounded-xl"
+                    style={{ background: '#FFF9E0', border: '1px solid #FDE68A' }}>
+                    <span className="text-lg">⭐</span>
+                    <span className="text-sm text-amber-800">
+                      You'll earn <strong>{getPointsEarned()} points</strong> from this order
+                      {loyaltyPoints === 0 ? ` + ${loyaltySettings.bonus_first_order} bonus points (first order!)` : ''}
+                    </span>
+                  </div>
+                )}
+
                 <button onClick={() => setStep(2)}
                   disabled={!form.name || !form.phone || !form.email}
                   className="w-full py-4 rounded-full text-white font-semibold transition-all hover:shadow-lg disabled:opacity-50"
@@ -344,8 +522,14 @@ export default function CheckoutPage() {
                     )}
                     {coupon && (
                       <div className="flex justify-between" style={{ color: '#15803d' }}>
-                        <span>Discount ({coupon.code})</span>
+                        <span>Coupon ({coupon.code})</span>
                         <span>-${getDiscount().toFixed(2)}</span>
+                      </div>
+                    )}
+                    {usePoints && (
+                      <div className="flex justify-between" style={{ color: '#15803d' }}>
+                        <span>Points Discount ({pointsToRedeem} pts)</span>
+                        <span>-${getPointsDiscount().toFixed(2)}</span>
                       </div>
                     )}
                     <div className="flex justify-between font-bold text-gray-900 text-base pt-1 border-t border-gray-100">
@@ -366,6 +550,16 @@ export default function CheckoutPage() {
                     )}
                   </div>
                 </div>
+
+                {loyaltySettings?.is_active && (
+                  <div className="flex items-center gap-2 px-4 py-3 rounded-xl"
+                    style={{ background: '#FFF9E0', border: '1px solid #FDE68A' }}>
+                    <span className="text-lg">⭐</span>
+                    <span className="text-sm text-amber-800">
+                      You'll earn <strong>{getPointsEarned()} points</strong> after this order
+                    </span>
+                  </div>
+                )}
 
                 <button onClick={handleSubmit} disabled={loading}
                   className="w-full py-4 rounded-full text-white font-semibold transition-all hover:shadow-lg hover:scale-105"
@@ -392,10 +586,21 @@ export default function CheckoutPage() {
                   <span>{coupon.code}</span><span>-${getDiscount().toFixed(2)}</span>
                 </div>
               )}
+              {usePoints && (
+                <div className="flex justify-between text-xs mt-1" style={{ color: '#15803d' }}>
+                  <span>Points</span><span>-${getPointsDiscount().toFixed(2)}</span>
+                </div>
+              )}
               <div className="border-t border-gray-100 mt-3 pt-3 flex justify-between font-bold">
                 <span>Total</span>
                 <span style={{color: 'var(--color-primary)'}}>${finalTotal.toFixed(2)}</span>
               </div>
+              {loyaltySettings?.is_active && (
+                <div className="mt-3 pt-3 border-t border-gray-100 flex items-center gap-1.5">
+                  <span className="text-sm">⭐</span>
+                  <span className="text-xs text-amber-700">Earn {getPointsEarned()} pts</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
