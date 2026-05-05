@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
+import { RESTAURANT_ID } from '@/lib/restaurant'
 
 export default function Footer() {
   const [locations, setLocations] = useState<any[]>([])
@@ -10,10 +11,10 @@ export default function Footer() {
 
   useEffect(() => {
     const supabase = createClient()
-    supabase.from('locations').select('*').eq('is_active', true).order('name').then(({ data }) => {
+    supabase.from('locations').select('*').eq('is_active', true).eq('restaurant_id', RESTAURANT_ID).order('name').then(({ data }) => {
       if (data) setLocations(data)
     })
-    supabase.from('settings').select('*').then(({ data }) => {
+    supabase.from('settings').select('*').eq('restaurant_id', RESTAURANT_ID).then(({ data }) => {
       const map: any = {}
       data?.forEach((r: any) => { map[r.key] = r.value })
       setSettings(map)

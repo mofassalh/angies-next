@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase'
+import { RESTAURANT_ID } from '@/lib/restaurant'
 
 interface PromoProps {
   onOrderClick: () => void
@@ -11,14 +12,13 @@ export default function PromoSection({ onOrderClick }: PromoProps) {
 
   useEffect(() => {
     const supabase = createClient()
-    supabase.from('settings').select('*').then(({ data }) => {
+    supabase.from('settings').select('*').eq('restaurant_id', RESTAURANT_ID).then(({ data }) => {
       const map: any = {}
       data?.forEach((r: any) => { map[r.key] = r.value })
       setSettings(map)
     })
   }, [])
 
-  // promo_enabled false হলে hide
   if (settings && settings.promo_enabled === 'false') return null
 
   const title = settings?.promo_title || 'Free Delivery on Your First Order!'

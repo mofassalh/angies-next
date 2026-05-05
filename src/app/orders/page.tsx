@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Navbar from '@/components/Navbar'
 import { createClient } from '@/lib/supabase'
+import { RESTAURANT_ID } from '@/lib/restaurant'
 import { Star } from 'lucide-react'
 
 interface OrderItem { name: string; quantity: number; lineTotal: number }
@@ -39,7 +40,7 @@ export default function OrdersPage() {
     supabase.auth.getUser().then(async ({ data }) => {
       if (!data.user) { router.push('/login?redirect=/orders'); return }
       const [{ data: ordersData }, { data: ratingsData }] = await Promise.all([
-        supabase.from('orders').select('*').eq('user_id', data.user.id).order('created_at', { ascending: false }),
+        supabase.from('orders').select('*').eq('user_id', data.user.id).eq('restaurant_id', RESTAURANT_ID).order('created_at', { ascending: false }),
         supabase.from('order_ratings').select('*').eq('user_id', data.user.id),
       ])
       if (ordersData) setOrders(ordersData)
@@ -80,7 +81,6 @@ export default function OrdersPage() {
     day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'
   })
 
-  // Summary stats
   const totalSpent = orders.reduce((s, o) => s + o.total, 0)
   const delivered = orders.filter(o => o.status === 'delivered')
   const avgRating = delivered.length > 0
@@ -113,7 +113,6 @@ export default function OrdersPage() {
           </Link>
         </div>
 
-        {/* Summary Cards */}
         {orders.length > 0 && (
           <div className="grid grid-cols-3 gap-3 mb-6">
             <div className="bg-white rounded-2xl p-4 border border-gray-100 text-center">
@@ -206,7 +205,6 @@ export default function OrdersPage() {
         )}
       </div>
 
-      {/* Rating Modal */}
       {ratingModal && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4"
           style={{background:'rgba(0,0,0,0.4)'}}>

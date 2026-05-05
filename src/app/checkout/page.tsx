@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useCartStore } from '@/store/cartStore'
 import Navbar from '@/components/Navbar'
 import { createClient } from '@/lib/supabase'
+import { RESTAURANT_ID } from '@/lib/restaurant'
 
 export default function CheckoutPage() {
   const [mounted, setMounted] = useState(false)
@@ -76,6 +77,7 @@ export default function CheckoutPage() {
       .select('*')
       .eq('code', couponCode.toUpperCase())
       .eq('is_active', true)
+      .eq('restaurant_id', RESTAURANT_ID)
       .single()
     if (!data) {
       setCouponError('Invalid or expired coupon code')
@@ -90,6 +92,7 @@ export default function CheckoutPage() {
     }
     setApplyingCoupon(false)
   }
+
   const deliveryFeeVal = orderType === 'delivery' ? 5.00 : 0
   const getDiscount = () => {
     if (!coupon) return 0
@@ -133,6 +136,7 @@ export default function CheckoutPage() {
       status: 'pending',
       notes: form.notes,
       user_id: userData.user?.id || null,
+      restaurant_id: RESTAURANT_ID,
     }).select().single()
 
     if (error) {
@@ -141,7 +145,6 @@ export default function CheckoutPage() {
       return
     }
 
-    // Update coupon used count
     if (coupon) {
       await supabase.from('promotions').update({ used_count: (coupon.used_count || 0) + 1 }).eq('id', coupon.id)
     }

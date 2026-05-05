@@ -4,6 +4,7 @@ import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Navbar from '@/components/Navbar'
 import { createClient } from '@/lib/supabase'
+import { RESTAURANT_ID } from '@/lib/restaurant'
 
 function OrderConfirmedContent() {
   const searchParams = useSearchParams()
@@ -19,14 +20,12 @@ function OrderConfirmedContent() {
     if (savedType) setOrderType(savedType)
     if (savedLocation) setLocationName(savedLocation)
 
-    // Add loyalty points
     const addPoints = async () => {
       if (!orderId) return
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
-      // Check if points already added for this order
       const { data: existing } = await supabase
         .from('loyalty_points')
         .select('id')
@@ -34,7 +33,6 @@ function OrderConfirmedContent() {
         .single()
       if (existing) return
 
-      // Get order total
       const { data: order } = await supabase
         .from('orders')
         .select('total')
@@ -42,26 +40,25 @@ function OrderConfirmedContent() {
         .single()
       if (!order) return
 
-      // Get points per dollar setting
       const { data: setting } = await supabase
         .from('settings')
         .select('value')
         .eq('key', 'points_per_dollar')
+        .eq('restaurant_id', RESTAURANT_ID)
         .single()
       const ptsPerDollar = parseFloat(setting?.value || '1')
       const pts = Math.floor(order.total * ptsPerDollar)
       if (pts <= 0) return
 
-      // Add points
       await supabase.from('loyalty_points').insert({
         user_id: user.id,
         order_id: orderId,
         points: pts,
         type: 'earn',
         description: `Order ${orderNumber} — earned ${pts} points`,
+        restaurant_id: RESTAURANT_ID,
       })
 
-      // Update total points in profile
       const { data: profile } = await supabase
         .from('profiles')
         .select('total_points')
@@ -94,7 +91,6 @@ function OrderConfirmedContent() {
             Thank you! We'll start preparing your order right away.
           </p>
 
-          {/* Points earned */}
           {pointsEarned > 0 && (
             <div className="rounded-2xl p-4 mb-4 flex items-center gap-3"
               style={{ background: '#FFF9E0', border: '1px solid #E8C84A' }}>
