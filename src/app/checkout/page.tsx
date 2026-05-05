@@ -575,8 +575,13 @@ export default function CheckoutPage() {
               <h3 className="font-semibold text-gray-900 mb-4">Your Order ({items.length} {items.length === 1 ? 'item' : 'items'})</h3>
               <div className="space-y-2 max-h-64 overflow-y-auto">
                 {items.map(item => (
-                  <div key={item.id} className="flex justify-between text-sm">
-                    <span className="text-gray-600">{item.name} ×{item.quantity}</span>
+                  <div key={item.id} className="flex justify-between text-sm items-center gap-2">
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <button onClick={() => useCartStore.getState().removeItem(item.id)}
+                        className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all"
+                        style={{border:'1px solid #e5e5e5', fontSize:14, lineHeight:1}}>×</button>
+                      <span className="text-gray-600 truncate">{item.name} ×{item.quantity}</span>
+                    </div>
                     <span className="font-medium">${item.lineTotal.toFixed(2)}</span>
                   </div>
                 ))}
