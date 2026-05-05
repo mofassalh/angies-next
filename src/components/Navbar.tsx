@@ -21,7 +21,7 @@ export default function Navbar({ selectedLocation, onLocationClick }: NavbarProp
 
   useEffect(() => {
     const supabase = createClient()
-    supabase.from('settings').select('*').eq('restaurant_id', RESTAURANT_ID).then(({ data }) => {
+    supabase.from('site_settings').select('key, value').eq('restaurant_id', RESTAURANT_ID).then(({ data }) => {
       const map: any = {}
       data?.forEach((r: any) => { map[r.key] = r.value })
       setSettings(map)
@@ -49,13 +49,19 @@ export default function Navbar({ selectedLocation, onLocationClick }: NavbarProp
     return '?'
   }
 
+  const restaurantName = settings.restaurant_name || "Angie's Kebabs & Burgers"
+  const logoUrl = settings.logo_url || ''
+
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-100 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="flex items-center gap-2">
-            {settings.logo_url ? <img src={settings.logo_url} alt={settings.business_name || "Angie's"} className="w-11 h-11 rounded-full object-cover" /> : <Image src="/logo.jpg" alt="Angie's" width={44} height={44} className="rounded-full object-cover" />}
-            <span className="font-bold text-lg" style={{fontFamily: 'var(--font-display)'}}>{settings.business_name || "Angie's"}</span>
+            {logoUrl
+              ? <img src={logoUrl} alt={restaurantName} className="w-11 h-11 rounded-full object-cover" />
+              : <Image src="/logo.jpg" alt={restaurantName} width={44} height={44} className="rounded-full object-cover" />
+            }
+            <span className="font-bold text-lg" style={{fontFamily: 'var(--font-display)'}}>{restaurantName}</span>
           </Link>
           <button onClick={onLocationClick} className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-full border border-gray-200 hover:border-yellow-400 hover:bg-yellow-50 transition-all text-sm font-medium">
             <svg className="w-4 h-4" style={{color: 'var(--color-primary)'}} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -87,7 +93,7 @@ export default function Navbar({ selectedLocation, onLocationClick }: NavbarProp
                       <div className="text-xs text-gray-400">Signed in as</div>
                       <div className="text-sm font-semibold text-gray-800 truncate">{user.email}</div>
                     </div>
-                    <Link href="/orders" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50" onClick={() => setDropdownOpen(false)}>My Orders</Link>
+                    <Link href="/account" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50" onClick={() => setDropdownOpen(false)}>My Account</Link>
                     <button onClick={handleSignOut} className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-50">Sign Out</button>
                   </div>
                 )}
