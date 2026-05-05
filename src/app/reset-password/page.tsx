@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
+import { RESTAURANT_ID } from '@/lib/restaurant'
 
 function ResetPasswordContent() {
   const [password, setPassword] = useState('')
@@ -13,6 +14,7 @@ function ResetPasswordContent() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [validSession, setValidSession] = useState(false)
+  const [settings, setSettings] = useState<any>({})
   const router = useRouter()
 
   useEffect(() => {
@@ -20,7 +22,14 @@ function ResetPasswordContent() {
     supabase.auth.getSession().then(({ data }) => {
       if (data.session) setValidSession(true)
     })
+    supabase.from('settings').select('*').eq('restaurant_id', RESTAURANT_ID).then(({ data }) => {
+      const map: any = {}
+      data?.forEach((r: any) => { map[r.key] = r.value })
+      setSettings(map)
+    })
   }, [])
+
+  const businessName = settings.business_name || 'Our Restaurant'
 
   const handleReset = async () => {
     setError('')
@@ -43,9 +52,13 @@ function ResetPasswordContent() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex flex-col items-center gap-2">
-            <Image src="/logo.jpg" alt="Angie's" width={72} height={72} className="rounded-full object-cover shadow-md" />
+            {settings.logo_url ? (
+              <img src={settings.logo_url} alt={businessName} className="w-[72px] h-[72px] rounded-full object-cover shadow-md" />
+            ) : (
+              <Image src="/logo.jpg" alt={businessName} width={72} height={72} className="rounded-full object-cover shadow-md" />
+            )}
             <span className="font-bold text-xl" style={{fontFamily: 'var(--font-display)'}}>
-              Angie's Kebabs & Burgers
+              {businessName}
             </span>
           </Link>
         </div>
@@ -60,14 +73,10 @@ function ResetPasswordContent() {
           </div>
 
           {error && (
-            <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm">
-              {error}
-            </div>
+            <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm">{error}</div>
           )}
           {success && (
-            <div className="mb-4 p-3 rounded-xl bg-green-50 border border-green-200 text-green-600 text-sm">
-              {success}
-            </div>
+            <div className="mb-4 p-3 rounded-xl bg-green-50 border border-green-200 text-green-600 text-sm">{success}</div>
           )}
 
           {!validSession ? (
@@ -82,32 +91,20 @@ function ResetPasswordContent() {
               <div className="space-y-3">
                 <div>
                   <label className="text-xs font-medium text-gray-500 mb-1 block">New Password *</label>
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={e => setPassword(e.target.value)}
+                  <input type="password" value={password} onChange={e => setPassword(e.target.value)}
                     className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-yellow-400 transition-colors"
-                    placeholder="••••••••"
-                  />
+                    placeholder="••••••••" />
                 </div>
                 <div>
                   <label className="text-xs font-medium text-gray-500 mb-1 block">Confirm Password *</label>
-                  <input
-                    type="password"
-                    value={confirm}
-                    onChange={e => setConfirm(e.target.value)}
+                  <input type="password" value={confirm} onChange={e => setConfirm(e.target.value)}
                     className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-yellow-400 transition-colors"
-                    placeholder="••••••••"
-                  />
+                    placeholder="••••••••" />
                 </div>
               </div>
-
-              <button
-                onClick={handleReset}
-                disabled={loading || !password || !confirm}
+              <button onClick={handleReset} disabled={loading || !password || !confirm}
                 className="w-full py-3 rounded-full font-semibold mt-5 transition-all hover:shadow-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-                style={{background: 'var(--color-primary)', color: '#1A1A1A'}}
-              >
+                style={{background: 'var(--color-primary)', color: '#1A1A1A'}}>
                 {loading ? 'Updating...' : 'Update Password'}
               </button>
             </>

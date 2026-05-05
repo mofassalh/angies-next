@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
+import { RESTAURANT_ID } from '@/lib/restaurant'
 
 function LoginContent() {
   const [mode, setMode] = useState<'login' | 'signup' | 'forgot'>('login')
@@ -15,9 +16,21 @@ function LoginContent() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const [settings, setSettings] = useState<any>({})
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirect = searchParams.get('redirect') || '/'
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.from('settings').select('*').eq('restaurant_id', RESTAURANT_ID).then(({ data }) => {
+      const map: any = {}
+      data?.forEach((r: any) => { map[r.key] = r.value })
+      setSettings(map)
+    })
+  }, [])
+
+  const businessName = settings.business_name || 'Our Restaurant'
 
   const handleSubmit = async () => {
     setError('')
@@ -84,9 +97,13 @@ function LoginContent() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex flex-col items-center gap-2">
-            <Image src="/logo.jpg" alt="Angie's" width={72} height={72} className="rounded-full object-cover shadow-md" />
+            {settings.logo_url ? (
+              <img src={settings.logo_url} alt={businessName} className="w-[72px] h-[72px] rounded-full object-cover shadow-md" />
+            ) : (
+              <Image src="/logo.jpg" alt={businessName} width={72} height={72} className="rounded-full object-cover shadow-md" />
+            )}
             <span className="font-bold text-xl" style={{fontFamily: 'var(--font-display)'}}>
-              Angie's Kebabs & Burgers
+              {businessName}
             </span>
           </Link>
           {redirect === '/checkout' && (
@@ -97,21 +114,16 @@ function LoginContent() {
         </div>
 
         <div className="bg-white rounded-3xl shadow-xl p-8">
-
           {mode !== 'forgot' && (
             <div className="flex rounded-xl p-1 mb-6" style={{background: '#F3F4F6'}}>
-              <button
-                onClick={() => switchMode('login')}
+              <button onClick={() => switchMode('login')}
                 className="flex-1 py-2 rounded-lg text-sm font-semibold transition-all"
-                style={mode === 'login' ? {background: 'var(--color-primary)', color: '#1A1A1A'} : {color: '#6B7280'}}
-              >
+                style={mode === 'login' ? {background: 'var(--color-primary)', color: '#1A1A1A'} : {color: '#6B7280'}}>
                 Sign In
               </button>
-              <button
-                onClick={() => switchMode('signup')}
+              <button onClick={() => switchMode('signup')}
                 className="flex-1 py-2 rounded-lg text-sm font-semibold transition-all"
-                style={mode === 'signup' ? {background: 'var(--color-primary)', color: '#1A1A1A'} : {color: '#6B7280'}}
-              >
+                style={mode === 'signup' ? {background: 'var(--color-primary)', color: '#1A1A1A'} : {color: '#6B7280'}}>
                 Create Account
               </button>
             </div>
@@ -128,94 +140,64 @@ function LoginContent() {
           )}
 
           {error && (
-            <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm">
-              {error}
-            </div>
+            <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm">{error}</div>
           )}
           {success && (
-            <div className="mb-4 p-3 rounded-xl bg-green-50 border border-green-200 text-green-600 text-sm">
-              {success}
-            </div>
+            <div className="mb-4 p-3 rounded-xl bg-green-50 border border-green-200 text-green-600 text-sm">{success}</div>
           )}
 
           <div className="space-y-3">
             {mode === 'signup' && (
               <div>
                 <label className="text-xs font-medium text-gray-500 mb-1 block">Full Name *</label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={e => setName(e.target.value)}
+                <input type="text" value={name} onChange={e => setName(e.target.value)}
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-yellow-400 transition-colors"
-                  placeholder="John Smith"
-                />
+                  placeholder="John Smith" />
               </div>
             )}
-
             <div>
               <label className="text-xs font-medium text-gray-500 mb-1 block">Email *</label>
-              <input
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)}
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-yellow-400 transition-colors"
-                placeholder="john@example.com"
-              />
+                placeholder="john@example.com" />
             </div>
-
             {mode === 'signup' && (
               <div>
-                <label className="text-xs font-medium text-gray-500 mb-1 block">Phone * (Australian)</label>
-                <input
-                  type="tel"
-                  value={phone}
-                  onChange={e => setPhone(e.target.value)}
+                <label className="text-xs font-medium text-gray-500 mb-1 block">Phone *</label>
+                <input type="tel" value={phone} onChange={e => setPhone(e.target.value)}
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-yellow-400 transition-colors"
-                  placeholder="04XX XXX XXX"
-                />
+                  placeholder="04XX XXX XXX" />
               </div>
             )}
-
             {mode !== 'forgot' && (
               <div>
                 <label className="text-xs font-medium text-gray-500 mb-1 block">Password *</label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
+                <input type="password" value={password} onChange={e => setPassword(e.target.value)}
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-yellow-400 transition-colors"
-                  placeholder="••••••••"
-                />
+                  placeholder="••••••••" />
               </div>
             )}
           </div>
 
           {mode === 'login' && (
             <div className="text-right mt-2">
-              <button
-                onClick={() => switchMode('forgot')}
-                className="text-xs font-medium hover:underline"
-                style={{color: '#D4A900'}}
-              >
+              <button onClick={() => switchMode('forgot')}
+                className="text-xs font-medium hover:underline" style={{color: '#D4A900'}}>
                 Forgot Password?
               </button>
             </div>
           )}
 
-          <button
-            onClick={handleSubmit}
+          <button onClick={handleSubmit}
             disabled={loading || !email || (mode !== 'forgot' && !password)}
             className="w-full py-3 rounded-full font-semibold mt-5 transition-all hover:shadow-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{background: 'var(--color-primary)', color: '#1A1A1A'}}
-          >
+            style={{background: 'var(--color-primary)', color: '#1A1A1A'}}>
             {loading ? 'Please wait...' : mode === 'login' ? 'Sign In' : mode === 'signup' ? 'Create Account' : 'Send Reset Link'}
           </button>
 
           {mode === 'forgot' && (
-            <button
-              onClick={() => switchMode('login')}
-              className="w-full mt-3 text-sm py-2 text-gray-400 hover:text-gray-600 transition-colors"
-            >
+            <button onClick={() => switchMode('login')}
+              className="w-full mt-3 text-sm py-2 text-gray-400 hover:text-gray-600 transition-colors">
               ← Back to Sign In
             </button>
           )}
@@ -227,11 +209,8 @@ function LoginContent() {
                 <span className="text-xs text-gray-400">or</span>
                 <div className="flex-1 h-px bg-gray-200" />
               </div>
-
-              <button
-                onClick={handleGoogle}
-                className="w-full py-3 rounded-full font-semibold border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all flex items-center justify-center gap-2 text-sm text-gray-700"
-              >
+              <button onClick={handleGoogle}
+                className="w-full py-3 rounded-full font-semibold border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all flex items-center justify-center gap-2 text-sm text-gray-700">
                 <svg className="w-4 h-4" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                   <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
