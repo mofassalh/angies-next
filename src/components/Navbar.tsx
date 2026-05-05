@@ -21,7 +21,7 @@ export default function Navbar({ selectedLocation, onLocationClick }: NavbarProp
 
   useEffect(() => {
     const supabase = createClient()
-    supabase.from('site_settings').select('key, value').eq('restaurant_id', RESTAURANT_ID).then(({ data }) => {
+    supabase.from('settings').select('key, value').eq('restaurant_id', RESTAURANT_ID).then(({ data }) => {
       const map: any = {}
       data?.forEach((r: any) => { map[r.key] = r.value })
       setSettings(map)
@@ -49,7 +49,7 @@ export default function Navbar({ selectedLocation, onLocationClick }: NavbarProp
     return '?'
   }
 
-  const restaurantName = settings.restaurant_name || "Angie's Kebabs & Burgers"
+  const restaurantName = settings.business_name || "Angie's Kebabs & Burgers"
   const logoUrl = settings.logo_url || ''
 
   return (
