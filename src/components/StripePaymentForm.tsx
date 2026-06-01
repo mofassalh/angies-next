@@ -38,9 +38,12 @@ export default function StripePaymentForm({ onSuccess, loading, setLoading, fina
       return
     }
 
-    const { error: confirmError } = await stripe.confirmPayment({
+    const { error: confirmError, paymentIntent } = await stripe.confirmPayment({
       elements,
       clientSecret,
+      confirmParams: {
+        return_url: `${window.location.origin}/order-confirmed`,
+      },
       redirect: 'if_required',
     })
 
@@ -50,7 +53,9 @@ export default function StripePaymentForm({ onSuccess, loading, setLoading, fina
       return
     }
 
-    onSuccess()
+    if (paymentIntent && paymentIntent.status === 'succeeded') {
+      onSuccess()
+    }
   }
 
   return (
