@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { getSettings } from '@/lib/settings'
+import CookieBanner from '@/components/CookieBanner'
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSettings()
@@ -28,7 +29,7 @@ export default async function RootLayout({
           }
         `}</style>
       </head>
-      <body>{children}</body>
+      <body>{children}<CookieBanner /></body>
     </html>
   )
 }
