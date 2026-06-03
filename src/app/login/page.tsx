@@ -8,8 +8,8 @@ import { createClient } from '@/lib/supabase'
 import { RESTAURANT_ID } from '@/lib/restaurant'
 
 function LoginContent() {
-  const [mode, setMode] = useState<'login' | 'signup' | 'forgot'>)('login')
-  const [step, setStep] = useState<'credentials' | 'otp'>)('credentials')
+  const [mode, setMode] = useState<'login' | 'signup' | 'forgot'>('login')
+  const [step, setStep] = useState<'credentials' | 'otp'>('credentials')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [otp, setOtp] = useState('')
@@ -41,13 +41,16 @@ function LoginContent() {
     const supabase = createClient()
 
     if (mode === 'login') {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-      if (error) {
-        setError(error.message)
+      // First verify password is correct
+      const { error: signInError } = await supabase.auth.signInWithPassword({ email, password })
+      if (signInError) {
+        setError(signInError.message)
         setLoading(false)
         return
       }
-      // Send OTP email
+      // Sign out immediately — wait for OTP
+      await supabase.auth.signOut()
+      // Send OTP
       const { error: otpError } = await supabase.auth.signInWithOtp({
         email,
         options: { shouldCreateUser: false }
@@ -57,8 +60,6 @@ function LoginContent() {
         setLoading(false)
         return
       }
-      // Sign out temporarily — wait for OTP verification
-      await supabase.auth.signOut()
       setStep('otp')
       setSuccess('A 6-digit code has been sent to your email.')
     } else if (mode === 'signup') {
@@ -83,7 +84,7 @@ function LoginContent() {
       }
     } else if (mode === 'forgot') {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
+        redirectTo: \`\${window.location.origin}/reset-password\`,
       })
       if (error) {
         setError(error.message)
@@ -115,7 +116,7 @@ function LoginContent() {
     const supabase = createClient()
     await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}${redirect}` }
+      options: { redirectTo: \`\${window.location.origin}\${redirect}\` }
     })
   }
 
@@ -149,7 +150,6 @@ function LoginContent() {
         </div>
 
         <div className="bg-white rounded-3xl shadow-xl p-8">
-
           {step === 'otp' ? (
             <div>
               <div className="text-center mb-6">
