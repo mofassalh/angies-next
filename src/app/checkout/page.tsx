@@ -89,6 +89,16 @@ export default function CheckoutPage() {
       setCouponError('This coupon has expired')
     } else if (data.max_uses && data.used_count >= data.max_uses) {
       setCouponError('This coupon has reached its usage limit')
+    } else if (data.max_uses_per_customer) {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        const { count } = await supabase.from('orders').select('*', { count: 'exact', head: true }).eq('customer_id', user.id).eq('coupon_code', couponCode.toUpperCase()).eq('restaurant_id', RESTAURANT_ID)
+        if (count && count >= data.max_uses_per_customer) {
+          setCouponError('You have already used this coupon')
+          setApplyingCoupon(false)
+          return
+        }
+      }
     } else if (data.min_order && getTotal() < data.min_order) {
       setCouponError(`Minimum order $${data.min_order} required`)
     } else {
