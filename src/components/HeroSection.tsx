@@ -116,22 +116,22 @@ export default function HeroSection({ onOrderClick }: HeroProps) {
                 style={{ background: 'linear-gradient(135deg, #FFF3B0, #FFE566)' }} />
 
               {images[0] && (
-                <div className="absolute inset-4 rounded-full overflow-hidden shadow-2xl">
-                  <Image src={images[0]} alt="food" fill className="object-cover" sizes="400px" priority />
+                <div className="absolute inset-4 rounded-full overflow-hidden shadow-2xl" style={{background: "#FFE566"}}>
+                  <Image src={images[0]} alt="food" fill className="object-cover" sizes="400px" priority placeholder="blur" blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==" />
                 </div>
               )}
               {images[1] && (
-                <div className="absolute -top-2 -right-2 w-24 h-24 rounded-2xl overflow-hidden shadow-xl border-4 border-white">
+                <div className="absolute -top-2 -right-2 w-24 h-24 rounded-2xl overflow-hidden shadow-xl border-4 border-white" style={{background: "#FFE566"}}>
                   <Image src={images[1]} alt="food" fill className="object-cover" sizes="96px" />
                 </div>
               )}
               {images[2] && (
-                <div className="absolute -bottom-2 -left-2 w-24 h-24 rounded-2xl overflow-hidden shadow-xl border-4 border-white">
+                <div className="absolute -bottom-2 -left-2 w-24 h-24 rounded-2xl overflow-hidden shadow-xl border-4 border-white" style={{background: "#FFE566"}}>
                   <Image src={images[2]} alt="food" fill className="object-cover" sizes="96px" />
                 </div>
               )}
               {images[3] && (
-                <div className="absolute -bottom-4 right-8 w-20 h-20 rounded-2xl overflow-hidden shadow-lg border-4 border-white">
+                <div className="absolute -bottom-4 right-8 w-20 h-20 rounded-2xl overflow-hidden shadow-lg border-4 border-white" style={{background: "#FFE566"}}>
                   <Image src={images[3]} alt="food" fill className="object-cover" sizes="80px" />
                 </div>
               )}
