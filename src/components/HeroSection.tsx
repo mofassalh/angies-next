@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase'
 import { RESTAURANT_ID } from '@/lib/restaurant'
 
@@ -116,22 +117,22 @@ export default function HeroSection({ onOrderClick }: HeroProps) {
 
               {images[0] && (
                 <div className="absolute inset-4 rounded-full overflow-hidden shadow-2xl">
-                  <img src={images[0]} alt="food" className="w-full h-full object-cover" />
+                  <Image src={images[0]} alt="food" fill className="object-cover" sizes="400px" priority />
                 </div>
               )}
               {images[1] && (
                 <div className="absolute -top-2 -right-2 w-24 h-24 rounded-2xl overflow-hidden shadow-xl border-4 border-white">
-                  <img src={images[1]} alt="food" className="w-full h-full object-cover" />
+                  <Image src={images[1]} alt="food" fill className="object-cover" sizes="96px" />
                 </div>
               )}
               {images[2] && (
                 <div className="absolute -bottom-2 -left-2 w-24 h-24 rounded-2xl overflow-hidden shadow-xl border-4 border-white">
-                  <img src={images[2]} alt="food" className="w-full h-full object-cover" />
+                  <Image src={images[2]} alt="food" fill className="object-cover" sizes="96px" />
                 </div>
               )}
               {images[3] && (
                 <div className="absolute -bottom-4 right-8 w-20 h-20 rounded-2xl overflow-hidden shadow-lg border-4 border-white">
-                  <img src={images[3]} alt="food" className="w-full h-full object-cover" />
+                  <Image src={images[3]} alt="food" fill className="object-cover" sizes="80px" />
                 </div>
               )}
 
