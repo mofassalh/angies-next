@@ -40,8 +40,6 @@ export default function AccountPage() {
   const [hasNightOrder, setHasNightOrder] = useState(false)
   const [hasRated, setHasRated] = useState(false)
   const [visible, setVisible] = useState(false)
-  const [heroImage, setHeroImage] = useState('')
-  const [avatarUrl, setAvatarUrl] = useState('')
   const router = useRouter()
 
   useEffect(() => {
