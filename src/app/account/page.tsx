@@ -52,6 +52,8 @@ export default function AccountPage() {
   const [submitting, setSubmitting] = useState(false)
   const [loading, setLoading] = useState(true)
   const [visible, setVisible] = useState(false)
+  const [heroImage, setHeroImage] = useState('')
+  const [avatarUrl, setAvatarUrl] = useState('')
   const router = useRouter()
 
   const greeting = () => {
@@ -82,7 +84,13 @@ export default function AccountPage() {
         supabase.from('loyalty_settings').select('*').eq('restaurant_id', RESTAURANT_ID).single(),
       ])
       if (profileData) setProfile({ full_name: profileData.full_name || '', phone: profileData.phone || '', address: profileData.address || '' })
+      // Get avatar from Google OAuth
+      const avatarFromMeta = data.user.user_metadata?.avatar_url || data.user.user_metadata?.picture || ''
+      setAvatarUrl(avatarFromMeta)
       if (lpData) setLoyaltyPoints(lpData.points || 0)
+      // Fetch hero image from settings
+      const { data: heroData } = await supabase.from('settings').select('value').eq('key', 'hero_image1').eq('restaurant_id', RESTAURANT_ID).single()
+      if (heroData?.value) setHeroImage(heroData.value)
       if (lsData) setLoyaltySettings(lsData)
       if (ordersData) {
         setOrders(ordersData)
@@ -182,19 +190,34 @@ export default function AccountPage() {
 
         {/* Hero Header */}
         <div
-          className="rounded-3xl p-6 mb-6 relative overflow-hidden"
+          className="mb-6 relative overflow-hidden rounded-3xl"
           style={{
-            background: 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)',
             opacity: visible ? 1 : 0,
             transform: visible ? 'translateY(0)' : 'translateY(20px)',
             transition: 'all 0.5s ease',
           }}>
-          <div className="absolute top-0 right-0 w-48 h-48 rounded-full opacity-10"
-            style={{background: 'var(--color-primary)', filter: 'blur(40px)', transform: 'translate(20px, -20px)'}} />
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-black flex-shrink-0"
-              style={{ background: 'var(--color-primary)', color: '#1a1a1a' }}>
-              {initials}
+          {/* Cover image */}
+          <div className="w-full h-36 rounded-t-3xl overflow-hidden relative"
+            style={{background: 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)'}}>
+            {heroImage && (
+              <img src={heroImage} alt="cover" className="w-full h-full object-cover opacity-60" />
+            )}
+          </div>
+          {/* Profile body */}
+          <div className="rounded-b-3xl px-6 pb-6 pt-0"
+            style={{background: 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)'}}>
+          <div className="flex items-end gap-4 -mt-8 mb-4">
+            {/* Avatar */}
+            <div className="w-16 h-16 rounded-2xl overflow-hidden flex-shrink-0 border-2"
+              style={{borderColor: 'var(--color-primary)'}}>
+              {avatarUrl ? (
+                <img src={avatarUrl} alt={initials} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-2xl font-black"
+                  style={{background: 'var(--color-primary)', color: '#1a1a1a'}}>
+                  {initials}
+                </div>
+              )}
             </div>
             <div className="flex-1">
               <div className="text-sm mb-1" style={{color:'#aaa'}}>{greeting()}</div>
@@ -208,8 +231,19 @@ export default function AccountPage() {
             </button>
           </div>
 
+          <div className="flex-1">
+            <div style={{color:'#aaa'}} className="text-sm mb-1">{greeting()}</div>
+            <div className="text-xl font-bold text-white">{profile.full_name || 'Welcome!'}</div>
+            <div className="text-sm" style={{color:'#888'}}>{user?.email}</div>
+          </div>
+          <button onClick={handleLogout}
+            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full transition-all self-start"
+            style={{background:'rgba(255,255,255,0.1)', color:'#aaa'}}>
+            <LogOut size={12} /> Logout
+          </button>
+          </div>
           {/* Stats row */}
-          <div className="grid grid-cols-3 gap-3 mt-5">
+          <div className="grid grid-cols-3 gap-3">
             {[
               { label: 'Orders', value: <CountUp target={orderStats.total} />, sub: 'total placed' },
               { label: 'Spent', value: <>${'$'}<CountUp target={Math.round(orderStats.spent)} /></>, sub: 'all time' },
@@ -228,6 +262,7 @@ export default function AccountPage() {
             ))}
           </div>
         </div>
+          </div>
 
         {/* Loyalty Card */}
         {loyaltySettings?.is_active && (
