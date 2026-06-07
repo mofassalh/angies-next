@@ -73,8 +73,6 @@ export default function AccountPage() {
       if (heroData?.value) setHeroImage(heroData.value)
       const avatar = data.user.user_metadata?.avatar_url || data.user.user_metadata?.picture || ''
       setAvatarUrl(avatar)
-      const { data: heroData } = await supabase.from('settings').select('value').eq('key', 'hero_image1').eq('restaurant_id', RESTAURANT_ID).single()
-      if (heroData?.value) setHeroImage(heroData.value)
       if (lpData) setLoyaltyPoints(lpData.points || 0)
       if (lsData) setLoyaltySettings(lsData)
 
