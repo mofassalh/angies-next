@@ -200,10 +200,10 @@ export default function AccountPage() {
   return (
     <main className="min-h-screen bg-gray-50">
       <Navbar selectedLocation={null} onLocationClick={() => {}} />
-      <div className="pt-16 max-w-lg mx-auto px-4 py-6">
+      <div className="pt-16 max-w-2xl mx-auto px-4 py-6">
 
         {/* Cover + Profile */}
-        <div className="rounded-3xl overflow-hidden mb-4" style={{border:'1px solid #e5e5e5', opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(16px)', transition:'all 0.5s ease'}}>
+        <div className="rounded-3xl overflow-hidden mb-4" style={{border:'1px solid #e5e5e5'}}>
           {/* Cover */}
           <div className="relative w-full h-32 overflow-hidden" style={{background:'#1a1a1a'}}>
             {heroImage && <img src={heroImage} alt="cover" className="w-full h-full object-cover" style={{opacity:0.55}} />}
