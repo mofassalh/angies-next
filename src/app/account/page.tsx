@@ -216,7 +216,7 @@ export default function AccountPage() {
           </div>
           {/* White profile section */}
           <div className="bg-white px-5 pb-5">
-            <div className="flex items-end justify-between -mt-8 mb-3">
+            <div className="flex items-end justify-between -mt-6 mb-3">
               <div className="w-16 h-16 rounded-2xl overflow-hidden flex-shrink-0" style={{border:'3px solid white'}}>
                 {avatarUrl
                   ? <img src={avatarUrl} alt={initials} className="w-full h-full object-cover" />
