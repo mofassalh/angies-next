@@ -113,7 +113,6 @@ export default function AccountPage() {
     await supabase.from('profiles').upsert({ id: user.id, ...profile, updated_at: new Date().toISOString() })
     setSaving(false)
     setSaved(true)
-    setEditing(false)
     setTimeout(() => setSaved(false), 2000)
   }
 
