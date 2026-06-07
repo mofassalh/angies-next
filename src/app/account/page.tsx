@@ -5,7 +5,7 @@ import Link from 'next/link'
 import Navbar from '@/components/Navbar'
 import { createClient } from '@/lib/supabase'
 import { RESTAURANT_ID } from '@/lib/restaurant'
-import { Save, LogOut, Star, Package, User, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react'
+import { Save, LogOut, Star, Package, User, ChevronDown, ChevronUp } from 'lucide-react'
 
 const statusColor: Record<string, string> = {
   pending:'#F59E0B', confirmed:'#3B82F6', preparing:'#8B5CF6',
@@ -14,22 +14,6 @@ const statusColor: Record<string, string> = {
 const statusLabel: Record<string, string> = {
   pending:'Pending', confirmed:'Confirmed', preparing:'Preparing',
   ready:'Ready', delivered:'Delivered', cancelled:'Cancelled',
-}
-
-function CountUp({ target, duration = 1200 }: { target: number, duration?: number }) {
-  const [count, setCount] = useState(0)
-  useEffect(() => {
-    if (target === 0) return
-    let start = 0
-    const step = target / (duration / 16)
-    const timer = setInterval(() => {
-      start += step
-      if (start >= target) { setCount(target); clearInterval(timer) }
-      else setCount(Math.floor(start))
-    }, 16)
-    return () => clearInterval(timer)
-  }, [target])
-  return <>{count}</>
 }
 
 export default function AccountPage() {
@@ -51,25 +35,18 @@ export default function AccountPage() {
   const [comment, setComment] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [loading, setLoading] = useState(true)
-  const [visible, setVisible] = useState(false)
-  const [heroImage, setHeroImage] = useState('')
-  const [avatarUrl, setAvatarUrl] = useState('')
   const router = useRouter()
 
-  const greeting = () => {
-    const h = new Date().getHours()
-    if (h < 12) return 'Good morning'
-    if (h < 17) return 'Good afternoon'
-    return 'Good evening'
-  }
-
   useEffect(() => {
+    // Check for tab param
     const params = new URLSearchParams(window.location.search)
     if (params.get('tab') === 'orders') setTab('orders')
+
     const supabase = createClient()
     supabase.auth.getUser().then(async ({ data }) => {
       if (!data.user) { router.push('/login?redirect=/account'); return }
       setUser(data.user)
+
       const [
         { data: profileData },
         { data: ordersData },
@@ -83,15 +60,11 @@ export default function AccountPage() {
         supabase.from('loyalty_points').select('points').eq('customer_id', data.user.id).eq('restaurant_id', RESTAURANT_ID).single(),
         supabase.from('loyalty_settings').select('*').eq('restaurant_id', RESTAURANT_ID).single(),
       ])
+
       if (profileData) setProfile({ full_name: profileData.full_name || '', phone: profileData.phone || '', address: profileData.address || '' })
-      // Get avatar from Google OAuth
-      const avatarFromMeta = data.user.user_metadata?.avatar_url || data.user.user_metadata?.picture || ''
-      setAvatarUrl(avatarFromMeta)
       if (lpData) setLoyaltyPoints(lpData.points || 0)
-      // Fetch hero image from settings
-      const { data: heroData } = await supabase.from('settings').select('value').eq('key', 'hero_image1').eq('restaurant_id', RESTAURANT_ID).single()
-      if (heroData?.value) setHeroImage(heroData.value)
       if (lsData) setLoyaltySettings(lsData)
+
       if (ordersData) {
         setOrders(ordersData)
         const spent = ordersData.reduce((s: number, o: any) => s + o.total, 0)
@@ -104,13 +77,14 @@ export default function AccountPage() {
         const favourite = Object.entries(itemCount).sort((a, b) => b[1] - a[1])[0]?.[0] || ''
         setOrderStats({ total: ordersData.length, spent, favourite })
       }
+
       if (ratingsData) {
         const map: Record<string, any> = {}
         ratingsData.forEach((r: any) => { map[r.order_id] = r })
         setRatings(map)
       }
+
       setLoading(false)
-      setTimeout(() => setVisible(true), 100)
     })
   }, [])
 
@@ -128,13 +102,6 @@ export default function AccountPage() {
     const supabase = createClient()
     await supabase.auth.signOut()
     router.push('/')
-  }
-
-  const handleReorder = (order: any) => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('reorder_items', JSON.stringify(order.items))
-      router.push('/menu?reorder=1')
-    }
   }
 
   const openRating = (order: any) => {
@@ -170,11 +137,9 @@ export default function AccountPage() {
     : user?.email?.[0]?.toUpperCase() || '?'
 
   const pointsValue = loyaltySettings ? (loyaltyPoints / loyaltySettings.points_per_dollar_value).toFixed(2) : '0.00'
-  const progressPct = loyaltySettings ? Math.min(100, (loyaltyPoints / loyaltySettings.min_points_redeem) * 100) : 0
-  const canRedeem = loyaltySettings && loyaltyPoints >= loyaltySettings.min_points_redeem
 
   if (loading) return (
-    <main className="min-h-screen" style={{background:'#f8f9fc'}}>
+    <main className="min-h-screen bg-gray-50">
       <Navbar selectedLocation={null} onLocationClick={() => {}} />
       <div className="pt-16 flex items-center justify-center min-h-screen">
         <div className="w-8 h-8 rounded-full border-2 animate-spin" style={{ borderColor: 'var(--color-primary)', borderTopColor: 'transparent' }} />
@@ -183,128 +148,43 @@ export default function AccountPage() {
   )
 
   return (
-    <main className="min-h-screen" style={{background:'#f8f9fc'}}>
+    <main className="min-h-screen bg-gray-50">
       <Navbar selectedLocation={null} onLocationClick={() => {}} />
 
       <div className="pt-16 max-w-2xl mx-auto px-4 py-10">
 
-        {/* Hero Header */}
-        <div
-          className="mb-6 relative overflow-hidden rounded-3xl"
-          style={{
-            opacity: visible ? 1 : 0,
-            transform: visible ? 'translateY(0)' : 'translateY(20px)',
-            transition: 'all 0.5s ease',
-          }}>
-          {/* Cover image */}
-          <div className="w-full h-36 rounded-t-3xl overflow-hidden relative"
-            style={{background: 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)'}}>
-            {heroImage && (
-              <img src={heroImage} alt="cover" className="w-full h-full object-cover opacity-60" />
-            )}
+        {/* Header */}
+        <div className="flex items-center gap-4 mb-6">
+          <div className="w-14 h-14 rounded-full flex items-center justify-center text-lg font-bold flex-shrink-0"
+            style={{ background: 'var(--color-primary)', color: '#1a1a1a' }}>
+            {initials}
           </div>
-          {/* Profile body */}
-          <div className="rounded-b-3xl px-6 pb-6 pt-0"
-            style={{background: 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)'}}>
-          <div className="flex items-end gap-4 -mt-8 mb-4">
-            {/* Avatar */}
-            <div className="w-16 h-16 rounded-2xl overflow-hidden flex-shrink-0 border-2"
-              style={{borderColor: 'var(--color-primary)'}}>
-              {avatarUrl ? (
-                <img src={avatarUrl} alt={initials} className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-2xl font-black"
-                  style={{background: 'var(--color-primary)', color: '#1a1a1a'}}>
-                  {initials}
-                </div>
-              )}
-            </div>
-            <div className="flex-1">
-              <div className="text-sm mb-1" style={{color:'#aaa'}}>{greeting()}</div>
-              <div className="text-xl font-bold text-white">{profile.full_name || 'Welcome!'}</div>
-              <div className="text-sm" style={{color:'#888'}}>{user?.email}</div>
-            </div>
-            <button onClick={handleLogout}
-              className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full transition-all"
-              style={{background:'rgba(255,255,255,0.1)', color:'#aaa'}}>
-              <LogOut size={12} /> Logout
-            </button>
-          </div>
-
           <div className="flex-1">
-            <div style={{color:'#aaa'}} className="text-sm mb-1">{greeting()}</div>
-            <div className="text-xl font-bold text-white">{profile.full_name || 'Welcome!'}</div>
-            <div className="text-sm" style={{color:'#888'}}>{user?.email}</div>
+            <div className="font-bold text-gray-900 text-xl">{profile.full_name || 'Welcome!'}</div>
+            <div className="text-sm text-gray-400">{user?.email}</div>
           </div>
           <button onClick={handleLogout}
-            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full transition-all self-start"
-            style={{background:'rgba(255,255,255,0.1)', color:'#aaa'}}>
-            <LogOut size={12} /> Logout
+            className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-red-500 transition-colors">
+            <LogOut size={15} /> Logout
           </button>
+        </div>
+
+        {/* Stats row */}
+        <div className="grid grid-cols-4 gap-3 mb-6">
+          <div className="bg-white rounded-2xl p-3 border border-gray-100 text-center">
+            <div className="text-xl font-bold text-gray-900">{orderStats.total}</div>
+            <div className="text-xs text-gray-400 mt-0.5">Orders</div>
           </div>
-          {/* Stats row */}
-          <div className="grid grid-cols-3 gap-3">
-            {[
-              { label: 'Orders', value: <CountUp target={orderStats.total} />, sub: 'total placed' },
-              { label: 'Spent', value: <>${'$'}<CountUp target={Math.round(orderStats.spent)} /></>, sub: 'all time' },
-              { label: 'Points', value: <CountUp target={loyaltyPoints} />, sub: `worth $${pointsValue}` },
-            ].map((stat, i) => (
-              <div key={i} className="rounded-2xl p-3 text-center"
-                style={{
-                  background: 'rgba(255,255,255,0.07)',
-                  opacity: visible ? 1 : 0,
-                  transform: visible ? 'translateY(0)' : 'translateY(10px)',
-                  transition: `all 0.5s ease ${0.1 + i * 0.1}s`,
-                }}>
-                <div className="text-xl font-black text-white">{stat.value}</div>
-                <div className="text-xs mt-0.5" style={{color:'#888'}}>{stat.sub}</div>
-              </div>
-            ))}
+          <div className="bg-white rounded-2xl p-3 border border-gray-100 text-center">
+            <div className="text-xl font-bold text-gray-900">${orderStats.spent.toFixed(0)}</div>
+            <div className="text-xs text-gray-400 mt-0.5">Spent</div>
+          </div>
+          <div className="bg-white rounded-2xl p-3 border border-gray-100 text-center col-span-2"
+            style={{ background: 'linear-gradient(135deg, #FFFBE6, #FFF9E0)', border: '1px solid #E8C84A' }}>
+            <div className="text-xl font-bold" style={{ color: '#8A6800' }}>⭐ {loyaltyPoints}</div>
+            <div className="text-xs mt-0.5" style={{ color: '#B8960A' }}>Points · Worth ${pointsValue}</div>
           </div>
         </div>
-          </div>
-
-        {/* Loyalty Card */}
-        {loyaltySettings?.is_active && (
-          <div className="rounded-3xl p-5 mb-6 relative overflow-hidden"
-            style={{
-              background: 'linear-gradient(135deg, #FFFBE6 0%, #FFF3B0 100%)',
-              border: '1.5px solid #E8C84A',
-              opacity: visible ? 1 : 0,
-              transform: visible ? 'translateY(0)' : 'translateY(20px)',
-              transition: 'all 0.5s ease 0.2s',
-            }}>
-            <div className="flex items-center justify-between mb-3">
-              <div>
-                <div className="text-xs font-semibold mb-1" style={{color:'#B8960A'}}>LOYALTY REWARDS</div>
-                <div className="text-3xl font-black" style={{color:'#D4A900'}}>
-                  <CountUp target={loyaltyPoints} /> pts
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="text-xs" style={{color:'#B8960A'}}>Cash value</div>
-                <div className="text-xl font-bold" style={{color:'#7A5F00'}}>${pointsValue}</div>
-              </div>
-            </div>
-            <div className="h-2.5 rounded-full overflow-hidden mb-2" style={{background:'#F5E080'}}>
-              <div className="h-2.5 rounded-full"
-                style={{
-                  background: 'linear-gradient(90deg, #D4A900, #F5C800)',
-                  width: `${progressPct}%`,
-                  transition: 'width 1.2s ease',
-                }} />
-            </div>
-            <div className="flex justify-between text-xs" style={{color:'#B8960A'}}>
-              <span>{canRedeem ? '✅ Ready to redeem!' : `${loyaltySettings.min_points_redeem - loyaltyPoints} pts to unlock`}</span>
-              <span>Earn {loyaltySettings.points_per_dollar} pt per $1</span>
-            </div>
-            {orderStats.favourite && (
-              <div className="mt-3 pt-3 text-xs" style={{borderTop:'1px solid #E8C84A', color:'#8A6800'}}>
-                ❤️ Favourite: <strong>{orderStats.favourite}</strong>
-              </div>
-            )}
-          </div>
-        )}
 
         {/* Tabs */}
         <div className="flex gap-2 mb-5">
@@ -317,7 +197,7 @@ export default function AccountPage() {
               style={{
                 background: tab === id ? '#1a1a1a' : 'white',
                 color: tab === id ? 'white' : '#666',
-                border: '1px solid #e5e5e5',
+                border: '1px solid #e5e5e5'
               }}>
               <Icon size={14} />
               {label}
@@ -328,12 +208,7 @@ export default function AccountPage() {
         {/* Profile Tab */}
         {tab === 'profile' && (
           <div className="space-y-4">
-            <div className="bg-white rounded-3xl border border-gray-100 p-5"
-              style={{
-                opacity: visible ? 1 : 0,
-                transform: visible ? 'translateY(0)' : 'translateY(16px)',
-                transition: 'all 0.4s ease 0.3s',
-              }}>
+            <div className="bg-white rounded-2xl border border-gray-100 p-5">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-semibold text-gray-900">Personal Info</h3>
                 {!editing && (
@@ -388,13 +263,34 @@ export default function AccountPage() {
               )}
             </div>
 
+            {/* Loyalty card */}
+            {loyaltySettings?.is_active && (
+              <div className="rounded-2xl p-5" style={{ background: 'linear-gradient(135deg, #FFFBE6, #FFF3B0)', border: '1px solid #E8C84A' }}>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="font-bold text-lg" style={{ color: '#7A5F00' }}>⭐ Loyalty Points</div>
+                  <div className="text-2xl font-black" style={{ color: '#D4A900' }}>{loyaltyPoints}</div>
+                </div>
+                <div className="flex justify-between text-sm mb-3">
+                  <span style={{ color: '#B8960A' }}>Worth ${pointsValue} in discounts</span>
+                  <span style={{ color: '#B8960A' }}>Earn {loyaltySettings.points_per_dollar} pt per $1</span>
+                </div>
+                <div className="h-2 rounded-full overflow-hidden" style={{ background: '#F5E080' }}>
+                  <div className="h-2 rounded-full transition-all"
+                    style={{
+                      background: '#D4A900',
+                      width: `${Math.min(100, (loyaltyPoints / loyaltySettings.min_points_redeem) * 100)}%`
+                    }} />
+                </div>
+                <div className="text-xs mt-2" style={{ color: '#B8960A' }}>
+                  {loyaltyPoints >= loyaltySettings.min_points_redeem
+                    ? '✅ You can redeem points on your next order!'
+                    : `${loyaltySettings.min_points_redeem - loyaltyPoints} more points to unlock redemption`}
+                </div>
+              </div>
+            )}
+
             {/* Quick links */}
-            <div className="bg-white rounded-3xl border border-gray-100 p-5"
-              style={{
-                opacity: visible ? 1 : 0,
-                transform: visible ? 'translateY(0)' : 'translateY(16px)',
-                transition: 'all 0.4s ease 0.4s',
-              }}>
+            <div className="bg-white rounded-2xl border border-gray-100 p-5">
               <h3 className="font-semibold text-gray-900 mb-3">Quick Links</h3>
               <div className="space-y-1">
                 {[
@@ -416,7 +312,7 @@ export default function AccountPage() {
         {tab === 'orders' && (
           <div>
             {orders.length === 0 ? (
-              <div className="bg-white rounded-3xl p-12 text-center border border-gray-100">
+              <div className="bg-white rounded-2xl p-12 text-center border border-gray-100">
                 <div className="text-5xl mb-4">🧾</div>
                 <h3 className="text-lg font-semibold text-gray-700 mb-2">No orders yet</h3>
                 <p className="text-gray-400 mb-6 text-sm">Your order history will appear here</p>
@@ -427,22 +323,16 @@ export default function AccountPage() {
               </div>
             ) : (
               <div className="space-y-3">
-                {orders.map((order, idx) => {
+                {orders.map(order => {
                   const existingRating = ratings[order.id]
                   const isExpanded = expandedId === order.id
                   return (
-                    <div key={order.id}
-                      className="bg-white rounded-3xl border border-gray-100 overflow-hidden"
-                      style={{
-                        opacity: visible ? 1 : 0,
-                        transform: visible ? 'translateY(0)' : 'translateY(16px)',
-                        transition: `all 0.4s ease ${0.1 + idx * 0.05}s`,
-                      }}>
+                    <div key={order.id} className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
                       <div className="p-4 cursor-pointer" onClick={() => setExpandedId(isExpanded ? null : order.id)}>
                         <div className="flex items-center justify-between mb-1.5">
                           <div className="flex items-center gap-2">
                             <span className="font-bold text-gray-900 text-sm">{order.order_number}</span>
-                            <span className="text-xs px-2.5 py-0.5 rounded-full font-semibold text-white"
+                            <span className="text-xs px-2 py-0.5 rounded-full font-semibold text-white"
                               style={{ background: statusColor[order.status] || '#6B7280' }}>
                               {statusLabel[order.status] || order.status}
                             </span>
@@ -458,7 +348,7 @@ export default function AccountPage() {
                         </div>
                         {existingRating && (
                           <div className="flex items-center gap-1 mt-1.5">
-                            {[1,2,3,4,5].map(s => (
+                            {[1, 2, 3, 4, 5].map(s => (
                               <Star key={s} size={11} fill={s <= existingRating.rating ? '#F5C800' : 'none'}
                                 stroke={s <= existingRating.rating ? '#F5C800' : '#ccc'} />
                             ))}
@@ -471,29 +361,22 @@ export default function AccountPage() {
                             {(order.items || []).map((item: any, i: number) => (
                               <div key={i} className="flex justify-between text-sm">
                                 <span className="text-gray-600">{item.name} ×{item.quantity}</span>
-                                <span className="font-medium text-gray-900">${item.lineTotal?.toFixed(2)}</span>
+                                <span className="font-medium text-gray-900">${item.lineTotal.toFixed(2)}</span>
                               </div>
                             ))}
                           </div>
                           {order.notes && <div className="text-xs text-gray-400 mb-3">📝 {order.notes}</div>}
-                          <div className="flex gap-2">
-                            <button onClick={() => handleReorder(order)}
-                              className="flex-1 py-2 rounded-xl text-sm font-semibold flex items-center justify-center gap-1.5 transition-all hover:scale-105"
-                              style={{ background: 'var(--color-primary)', color: '#1a1a1a' }}>
-                              <RefreshCw size={13} /> Reorder
+                          {order.status === 'delivered' && (
+                            <button onClick={() => openRating(order)}
+                              className="w-full py-2 rounded-xl text-sm font-semibold transition-all"
+                              style={{
+                                border: `1px solid ${existingRating ? '#F5C800' : '#e5e5e5'}`,
+                                background: existingRating ? '#FFFBE6' : 'white',
+                                color: existingRating ? '#8A6800' : '#555'
+                              }}>
+                              {existingRating ? `⭐ Rated ${existingRating.rating}/5 — Edit` : '⭐ Rate this order'}
                             </button>
-                            {order.status === 'delivered' && (
-                              <button onClick={() => openRating(order)}
-                                className="flex-1 py-2 rounded-xl text-sm font-semibold transition-all"
-                                style={{
-                                  border: `1px solid ${existingRating ? '#F5C800' : '#e5e5e5'}`,
-                                  background: existingRating ? '#FFFBE6' : 'white',
-                                  color: existingRating ? '#8A6800' : '#555'
-                                }}>
-                                {existingRating ? `⭐ ${existingRating.rating}/5` : '⭐ Rate'}
-                              </button>
-                            )}
-                          </div>
+                          )}
                         </div>
                       )}
                     </div>
@@ -513,7 +396,7 @@ export default function AccountPage() {
             <h3 className="text-lg font-bold text-gray-900 mb-1">Rate your order</h3>
             <p className="text-sm text-gray-400 mb-5">{ratingModal.orderNumber}</p>
             <div className="flex justify-center gap-3 mb-5">
-              {[1,2,3,4,5].map(s => (
+              {[1, 2, 3, 4, 5].map(s => (
                 <button key={s} onMouseEnter={() => setStarHover(s)} onMouseLeave={() => setStarHover(0)} onClick={() => setStarSelected(s)}>
                   <Star size={36} fill={(starHover || starSelected) >= s ? '#F5C800' : 'none'}
                     stroke={(starHover || starSelected) >= s ? '#F5C800' : '#ddd'} />
