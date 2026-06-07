@@ -35,6 +35,8 @@ export default function AccountPage() {
   const [comment, setComment] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [heroImage, setHeroImage] = useState('')
+  const [avatarUrl, setAvatarUrl] = useState('')
   const router = useRouter()
 
   useEffect(() => {
@@ -62,6 +64,10 @@ export default function AccountPage() {
       ])
 
       if (profileData) setProfile({ full_name: profileData.full_name || '', phone: profileData.phone || '', address: profileData.address || '' })
+      const avatar = data.user.user_metadata?.avatar_url || data.user.user_metadata?.picture || ''
+      setAvatarUrl(avatar)
+      const { data: heroData } = await supabase.from('settings').select('value').eq('key', 'hero_image1').eq('restaurant_id', RESTAURANT_ID).single()
+      if (heroData?.value) setHeroImage(heroData.value)
       if (lpData) setLoyaltyPoints(lpData.points || 0)
       if (lsData) setLoyaltySettings(lsData)
 
@@ -153,20 +159,38 @@ export default function AccountPage() {
 
       <div className="pt-16 max-w-2xl mx-auto px-4 py-10">
 
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-6">
-          <div className="w-14 h-14 rounded-full flex items-center justify-center text-lg font-bold flex-shrink-0"
-            style={{ background: 'var(--color-primary)', color: '#1a1a1a' }}>
-            {initials}
+        {/* FB-style Header */}
+        <div className="mb-6 rounded-3xl overflow-hidden" style={{boxShadow:'0 2px 16px rgba(0,0,0,0.08)'}}>
+          {/* Cover */}
+          <div className="relative w-full h-36 overflow-hidden"
+            style={{background:'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)'}}>
+            {heroImage && (
+              <img src={heroImage} alt="cover" className="w-full h-full object-cover" style={{opacity:0.6}} />
+            )}
+            <button onClick={handleLogout}
+              className="absolute top-3 right-3 flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full"
+              style={{background:'rgba(0,0,0,0.4)', color:'white'}}>
+              <LogOut size={11} /> Logout
+            </button>
           </div>
-          <div className="flex-1">
-            <div className="font-bold text-gray-900 text-xl">{profile.full_name || 'Welcome!'}</div>
-            <div className="text-sm text-gray-400">{user?.email}</div>
+          {/* Profile info */}
+          <div className="px-5 pb-5" style={{background:'#1a1a1a'}}>
+            <div className="flex items-end justify-between -mt-8 mb-3">
+              <div className="w-16 h-16 rounded-2xl overflow-hidden flex-shrink-0"
+                style={{border:'3px solid #1a1a1a'}}>
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt={initials} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-xl font-bold"
+                    style={{background:'var(--color-primary)', color:'#1a1a1a'}}>
+                    {initials}
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="text-white font-bold text-lg">{profile.full_name || 'Welcome!'}</div>
+            <div className="text-sm" style={{color:'#888'}}>{user?.email}</div>
           </div>
-          <button onClick={handleLogout}
-            className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-red-500 transition-colors">
-            <LogOut size={15} /> Logout
-          </button>
         </div>
 
         {/* Stats row */}
