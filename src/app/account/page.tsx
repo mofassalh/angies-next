@@ -220,7 +220,7 @@ export default function AccountPage() {
               <div className="w-16 h-16 rounded-2xl overflow-hidden flex-shrink-0" style={{border:'3px solid white'}}>
                 {avatarUrl
                   ? <img src={avatarUrl} alt={initials} className="w-full h-full object-cover" />
-                  : <div className="w-full h-full flex items-center justify-center text-xl font-bold" style={{background:'var(--color-primary)', color:'#1a1a1a'}}>{initials}</div>
+                  : <div className="w-full h-full flex items-center justify-center text-xl font-bold" style={{background:'#F5C800', color:'#1a1a1a'}}>{initials}</div>
                 }
               </div>
               <div className="text-xs px-3 py-1.5 rounded-full font-semibold" style={{background:'#FFF3B0', color:'#7A5F00', border:'1px solid #E8C84A'}}>
