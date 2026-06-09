@@ -73,8 +73,43 @@ export default function HeroSection({ onOrderClick }: HeroProps) {
         settings.hero_image4 || '',
       ]
 
+  if (!loaded) return (
+    <section className="pt-16 flex items-center relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #FFFDF0 0%, #FFF9D6 50%, #FFFEF5 100%)' }}>
+      <style>{`
+        @keyframes shimmer { 0%{background-position:-400px 0} 100%{background-position:400px 0} }
+        .sk { background: linear-gradient(90deg,#f0e8a0 25%,#e8d870 50%,#f0e8a0 75%); background-size:800px 100%; animation:shimmer 1.5s infinite; border-radius:6px; }
+      `}</style>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <div>
+            <div className="sk h-6 w-40 mb-6 rounded-full" />
+            <div className="sk h-10 w-64 mb-3" />
+            <div className="sk h-10 w-48 mb-3" />
+            <div className="sk h-10 w-56 mb-8" />
+            <div className="sk h-5 w-80 mb-2" />
+            <div className="sk h-5 w-60 mb-8" />
+            <div className="flex gap-4 mb-12">
+              <div className="sk h-12 w-32 rounded-full" />
+              <div className="sk h-12 w-32 rounded-full" />
+            </div>
+            <div className="flex gap-8 pt-8 border-t border-yellow-200">
+              <div><div className="sk h-7 w-10 mb-1" /><div className="sk h-4 w-16" /></div>
+              <div><div className="sk h-7 w-10 mb-1" /><div className="sk h-4 w-16" /></div>
+              <div><div className="sk h-7 w-10 mb-1" /><div className="sk h-4 w-16" /></div>
+            </div>
+          </div>
+          <div className="flex justify-center">
+            <div className="relative w-72 h-72 lg:w-96 lg:h-96">
+              <div className="sk absolute inset-0 rounded-full" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+
   return (
-    <section className="pt-16 flex items-center relative overflow-hidden" style={{ opacity: loaded ? 1 : 0, transition: "opacity 0.3s ease", background: 'linear-gradient(135deg, #FFFDF0 0%, #FFF9D6 50%, #FFFEF5 100%)' }}>
+    <section className="pt-16 flex items-center relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #FFFDF0 0%, #FFF9D6 50%, #FFFEF5 100%)' }}>
 
       <div className="absolute top-20 right-0 w-96 h-96 rounded-full opacity-20"
         style={{ background: primaryColor, filter: 'blur(80px)' }} />
