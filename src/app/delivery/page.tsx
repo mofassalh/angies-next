@@ -2,14 +2,21 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Navbar from '@/components/Navbar'
+import { createClient } from '@/lib/supabase'
+import { RESTAURANT_ID } from '@/lib/restaurant'
 
 export default function DeliveryPage() {
   const router = useRouter()
   const [location, setLocation] = useState('')
+  const [deliveryEnabled, setDeliveryEnabled] = useState<boolean | null>(null)
 
   useEffect(() => {
     const saved = localStorage.getItem('selectedLocationName')
     if (saved) setLocation(saved)
+    const supabase = createClient()
+    supabase.from('settings').select('value').eq('key', 'delivery_enabled').eq('restaurant_id', RESTAURANT_ID).single().then(({ data }) => {
+      setDeliveryEnabled(data?.value === 'true')
+    })
   }, [])
 
   const handleOrderDelivery = () => {
@@ -30,23 +37,36 @@ export default function DeliveryPage() {
           How would you like your order?
         </h1>
         <p className="text-gray-500 mb-8">Choose how you'd like to receive your order</p>
-
         <div className="space-y-3">
           {/* Delivery option */}
-          <button onClick={handleOrderDelivery}
-            className="flex items-center justify-between w-full p-5 bg-white rounded-2xl border-2 transition-all hover:shadow-md hover:-translate-y-0.5"
-            style={{ borderColor: 'var(--color-primary)' }}>
-            <div className="flex items-center gap-4">
-              <span className="text-3xl">🛵</span>
-              <div className="text-left">
-                <div className="font-bold text-lg text-gray-900">Delivery</div>
-                <div className="text-sm text-gray-500">30-45 mins · $5.00 delivery fee</div>
+          {deliveryEnabled === false ? (
+            <div className="flex items-center justify-between w-full p-5 bg-white rounded-2xl border border-gray-100 opacity-60 cursor-not-allowed">
+              <div className="flex items-center gap-4">
+                <span className="text-3xl">🛵</span>
+                <div className="text-left">
+                  <div className="font-bold text-lg text-gray-900">Delivery</div>
+                  <div className="text-sm font-semibold" style={{color:'#F59E0B'}}>Coming Soon</div>
+                  <div className="text-xs text-gray-400 mt-0.5">We're working on it!</div>
+                </div>
               </div>
+              <span className="text-xs px-3 py-1 rounded-full font-semibold" style={{background:'#FFF3B0', color:'#D97706'}}>Soon</span>
             </div>
-            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
+          ) : (
+            <button onClick={handleOrderDelivery}
+              className="flex items-center justify-between w-full p-5 bg-white rounded-2xl border-2 transition-all hover:shadow-md hover:-translate-y-0.5"
+              style={{ borderColor: 'var(--color-primary)' }}>
+              <div className="flex items-center gap-4">
+                <span className="text-3xl">🛵</span>
+                <div className="text-left">
+                  <div className="font-bold text-lg text-gray-900">Delivery</div>
+                  <div className="text-sm text-gray-500">30-45 mins · $5.00 delivery fee</div>
+                </div>
+              </div>
+              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          )}
 
           {/* Pickup option */}
           <button onClick={handleOrderPickup}
