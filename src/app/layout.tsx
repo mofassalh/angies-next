@@ -18,6 +18,7 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     description,
     keywords: ['kebab', 'burger', 'online order', 'St Albans', 'Fitzroy North', 'Ascot Vale', 'pickup', 'delivery'],
+    icons: { icon: '/logo.jpg', apple: '/logo.jpg' },
     openGraph: {
       title: businessName,
       description,
