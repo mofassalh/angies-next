@@ -17,6 +17,7 @@ export default function CheckoutPage() {
   const [mounted, setMounted] = useState(false)
   const [authChecked, setAuthChecked] = useState(false)
   const [orderType, setOrderType] = useState<'pickup' | 'delivery'>('pickup')
+  const [deliveryEnabled, setDeliveryEnabled] = useState(false)
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
   const [couponCode, setCouponCode] = useState('')
@@ -34,6 +35,12 @@ export default function CheckoutPage() {
     setMounted(true)
     const savedType = localStorage.getItem('orderType')
     if (savedType) setOrderType(savedType as 'pickup' | 'delivery')
+    const supabase = createClient()
+    supabase.from('settings').select('value').eq('key', 'delivery_enabled').eq('restaurant_id', RESTAURANT_ID).single().then(({ data }) => {
+      const enabled = data?.value === 'true'
+      setDeliveryEnabled(enabled)
+      if (!enabled && savedType === 'delivery') setOrderType('pickup')
+    })
     const supabase = createClient()
     supabase.auth.getUser().then(({ data }) => {
       if (!data.user) {
@@ -195,8 +202,9 @@ export default function CheckoutPage() {
                       <div className="text-xs text-gray-500 mt-0.5">Ready in 15-20 min</div>
                       <div className="text-xs font-semibold mt-1" style={{color: 'var(--color-primary)'}}>Free</div>
                     </button>
-                    <button onClick={() => setOrderType('delivery')}
-                      className={`p-4 rounded-xl border-2 text-left transition-all ${orderType === 'delivery' ? 'border-orange-400 bg-orange-50' : 'border-gray-100 hover:border-gray-200'}`}>
+                    <button onClick={() => deliveryEnabled && setOrderType('delivery')}
+                      disabled={!deliveryEnabled}
+                      className={`p-4 rounded-xl border-2 text-left transition-all ${!deliveryEnabled ? 'opacity-50 cursor-not-allowed' : ''} ${orderType === 'delivery' ? 'border-orange-400 bg-orange-50' : 'border-gray-100 hover:border-gray-200'}`}>
                       <div className="text-2xl mb-2">🛵</div>
                       <div className="font-semibold text-gray-900">Delivery</div>
                       <div className="text-xs text-gray-500 mt-0.5">30-45 min est.</div>
