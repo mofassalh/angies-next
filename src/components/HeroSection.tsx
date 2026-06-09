@@ -12,6 +12,7 @@ interface HeroProps {
 export default function HeroSection({ onOrderClick }: HeroProps) {
   const [settings, setSettings] = useState<any>({})
   const [gallery, setGallery] = useState<any[]>([])
+  const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
     const supabase = createClient()
@@ -19,9 +20,11 @@ export default function HeroSection({ onOrderClick }: HeroProps) {
       const map: any = {}
       data?.forEach((r: any) => { map[r.key] = r.value })
       setSettings(map)
+      setLoaded(true)
     })
     supabase.from('gallery').select('*').eq('restaurant_id', RESTAURANT_ID).limit(4).then(({ data }) => {
       if (data && data.length > 0) setGallery(data)
+      setLoaded(true)
     })
   }, [])
 
@@ -47,7 +50,7 @@ export default function HeroSection({ onOrderClick }: HeroProps) {
       ]
 
   return (
-    <section className="pt-16 flex items-center relative overflow-hidden"
+    <section className="pt-16 flex items-center relative overflow-hidden" style={{ opacity: loaded ? 1 : 0, transition: "opacity 0.3s ease" }}
       style={{ background: 'linear-gradient(135deg, #FFFDF0 0%, #FFF9D6 50%, #FFFEF5 100%)' }}>
 
       <div className="absolute top-20 right-0 w-96 h-96 rounded-full opacity-20"
