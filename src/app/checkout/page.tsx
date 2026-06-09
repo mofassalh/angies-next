@@ -35,8 +35,8 @@ export default function CheckoutPage() {
     setMounted(true)
     const savedType = localStorage.getItem('orderType')
     if (savedType) setOrderType(savedType as 'pickup' | 'delivery')
-    const supabase = createClient()
-    supabase.from('settings').select('value').eq('key', 'delivery_enabled').eq('restaurant_id', RESTAURANT_ID).single().then(({ data }) => {
+    const supabaseClient = createClient()
+    supabaseClient.from('settings').select('value').eq('key', 'delivery_enabled').eq('restaurant_id', RESTAURANT_ID).single().then(({ data }) => {
       const enabled = data?.value === 'true'
       setDeliveryEnabled(enabled)
       if (!enabled && savedType === 'delivery') setOrderType('pickup')
