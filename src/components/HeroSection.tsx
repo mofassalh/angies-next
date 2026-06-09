@@ -15,6 +15,23 @@ export default function HeroSection({ onOrderClick }: HeroProps) {
   const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
+    const CACHE_KEY = `hero_cache_${RESTAURANT_ID}`
+    const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
+
+    // Load from cache instantly
+    try {
+      const cached = localStorage.getItem(CACHE_KEY)
+      if (cached) {
+        const { data, ts } = JSON.parse(cached)
+        if (Date.now() - ts < CACHE_TTL) {
+          setSettings(data.settings)
+          setGallery(data.gallery)
+          setLoaded(true)
+        }
+      }
+    } catch {}
+
+    // Always fetch fresh data in background
     const supabase = createClient()
     Promise.all([
       supabase.from('settings').select('*').eq('restaurant_id', RESTAURANT_ID),
@@ -25,6 +42,13 @@ export default function HeroSection({ onOrderClick }: HeroProps) {
       setSettings(map)
       if (galleryData && galleryData.length > 0) setGallery(galleryData)
       setLoaded(true)
+      // Save to cache
+      try {
+        localStorage.setItem(CACHE_KEY, JSON.stringify({
+          data: { settings: map, gallery: galleryData || [] },
+          ts: Date.now()
+        }))
+      } catch {}
     })
   }, [])
 
