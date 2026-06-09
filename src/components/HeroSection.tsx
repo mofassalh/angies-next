@@ -16,14 +16,14 @@ export default function HeroSection({ onOrderClick }: HeroProps) {
 
   useEffect(() => {
     const supabase = createClient()
-    supabase.from('settings').select('*').eq('restaurant_id', RESTAURANT_ID).then(({ data }) => {
+    Promise.all([
+      supabase.from('settings').select('*').eq('restaurant_id', RESTAURANT_ID),
+      supabase.from('gallery').select('*').eq('restaurant_id', RESTAURANT_ID).limit(4),
+    ]).then(([{ data: settingsData }, { data: galleryData }]) => {
       const map: any = {}
-      data?.forEach((r: any) => { map[r.key] = r.value })
+      settingsData?.forEach((r: any) => { map[r.key] = r.value })
       setSettings(map)
-      setLoaded(true)
-    })
-    supabase.from('gallery').select('*').eq('restaurant_id', RESTAURANT_ID).limit(4).then(({ data }) => {
-      if (data && data.length > 0) setGallery(data)
+      if (galleryData && galleryData.length > 0) setGallery(galleryData)
       setLoaded(true)
     })
   }, [])
