@@ -39,7 +39,7 @@ export default function MenuPage() {
       .from('menu_items')
       .select('*')
       .eq('available', true)
-      .order('sort_order')
+      .order('category')
     if (data) setItems(data)
     setLoading(false)
   }
