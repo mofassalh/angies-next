@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase'
+import { RESTAURANT_ID } from '@/lib/restaurant'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import ProductModal from '@/components/ProductModal'
