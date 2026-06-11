@@ -44,7 +44,19 @@ export default function MenuPage() {
     setLoading(false)
   }
 
-  const categories = [...new Set(items.map(i => i.category).filter(Boolean))]
+  const [categoryOrder, setCategoryOrder] = useState<string[]>([])
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.from('settings').select('value').eq('key', 'category_order').eq('restaurant_id', RESTAURANT_ID).single().then(({ data }) => {
+      if (data?.value) { try { setCategoryOrder(JSON.parse(data.value)) } catch {} }
+    })
+  }, [])
+
+  const rawCategories = [...new Set(items.map(i => i.category).filter(Boolean))] as string[]
+  const categories = categoryOrder.length > 0
+    ? [...categoryOrder.filter(c => rawCategories.includes(c)), ...rawCategories.filter(c => !categoryOrder.includes(c))]
+    : rawCategories
 
   const filteredItems = activeCategory === 'all'
     ? items
