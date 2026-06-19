@@ -61,7 +61,7 @@ export default function Navbar({ selectedLocation, onLocationClick }: NavbarProp
               ? <img src={logoUrl} alt={restaurantName} className="w-11 h-11 rounded-full object-cover" />
               : <Image src="/logo.jpg" alt={restaurantName} width={44} height={44} className="rounded-full object-cover" />
             }
-            <span className="font-bold text-base sm:text-lg whitespace-nowrap" style={{fontFamily: 'var(--font-sans)'}}>{restaurantName}</span>
+            <span className="font-bold text-sm sm:text-lg whitespace-nowrap truncate max-w-[140px] sm:max-w-none" style={{fontFamily: 'var(--font-sans)'}}>{restaurantName}</span>
           </Link>
           <button onClick={onLocationClick} className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-full border border-gray-200 hover:border-yellow-400 hover:bg-yellow-50 transition-all text-sm font-medium">
             <svg className="w-4 h-4" style={{color: 'var(--color-primary)'}} fill="none" stroke="currentColor" viewBox="0 0 24 24">
