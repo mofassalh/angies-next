@@ -381,12 +381,17 @@ export default function CheckoutPage() {
                       <div className="flex justify-between text-gray-500"><span>Delivery Fee</span><span>${deliveryFeeVal.toFixed(2)}</span></div>
                     )}
                     {coupon && (
+                      <div className="flex justify-between text-gray-700 pt-1 border-t border-gray-100">
+                        <span>Total</span><span>${(getTotal() + deliveryFeeVal).toFixed(2)}</span>
+                      </div>
+                    )}
+                    {coupon && (
                       <div className="flex justify-between" style={{ color: '#15803d' }}>
                         <span>Discount ({coupon.code})</span><span>-${getDiscount().toFixed(2)}</span>
                       </div>
                     )}
                     <div className="flex justify-between font-bold text-gray-900 text-base pt-1 border-t border-gray-100">
-                      <span>Total</span><span>${finalTotal.toFixed(2)}</span>
+                      <span>{coupon ? 'Final Total' : 'Total'}</span><span>${finalTotal.toFixed(2)}</span>
                     </div>
                   </div>
                 </div>
