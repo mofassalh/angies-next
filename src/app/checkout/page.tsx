@@ -24,6 +24,7 @@ export default function CheckoutPage() {
   const [coupon, setCoupon] = useState<any>(null)
   const [couponError, setCouponError] = useState('')
   const [applyingCoupon, setApplyingCoupon] = useState(false)
+  const [suggestedCoupon, setSuggestedCoupon] = useState<any>(null)
   const [form, setForm] = useState({
     name: '', phone: '', email: '',
     address: '', suburb: '', postcode: '', notes: '',
@@ -54,6 +55,18 @@ export default function CheckoutPage() {
           phone: meta?.phone || '',
         }))
         setAuthChecked(true)
+        ;(async () => {
+          const { count: orderCount } = await supabase.from('orders').select('*', { count: 'exact', head: true }).eq('customer_id', data.user!.id).eq('restaurant_id', RESTAURANT_ID)
+          if (orderCount && orderCount > 0) return
+          const { data: candidates } = await supabase.from('promotions').select('*').eq('is_active', true).eq('max_uses_per_customer', 1).eq('restaurant_id', RESTAURANT_ID)
+          if (!candidates || candidates.length === 0) return
+          const valid = candidates.find((c: any) => {
+            if (c.expires_at && new Date(c.expires_at) < new Date()) return false
+            if (c.max_uses && c.used_count >= c.max_uses) return false
+            return true
+          })
+          if (valid) setSuggestedCoupon(valid)
+        })()
       }
     })
   }, [])
@@ -77,8 +90,9 @@ export default function CheckoutPage() {
     )
   }
 
-  const applyCoupon = async () => {
-    if (!couponCode) return
+  const applyCoupon = async (codeOverride?: string) => {
+    const codeToApply = codeOverride || couponCode
+    if (!codeToApply) return
     setApplyingCoupon(true)
     setCouponError('')
     setCoupon(null)
@@ -86,7 +100,7 @@ export default function CheckoutPage() {
     const { data } = await supabase
       .from('promotions')
       .select('*')
-      .eq('code', couponCode.toUpperCase())
+      .eq('code', codeToApply.toUpperCase())
       .eq('is_active', true)
       .eq('restaurant_id', RESTAURANT_ID)
       .single()
@@ -97,15 +111,30 @@ export default function CheckoutPage() {
     } else if (data.max_uses && data.used_count >= data.max_uses) {
       setCouponError('This coupon has reached its usage limit')
     } else if (data.max_uses_per_customer) {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        const { count } = await supabase.from('orders').select('*', { count: 'exact', head: true }).eq('customer_id', user.id).eq('coupon_code', couponCode.toUpperCase()).eq('restaurant_id', RESTAURANT_ID)
-        if (count && count >= data.max_uses_per_customer) {
-          setCouponError('You have already used this coupon')
-          setApplyingCoupon(false)
-          return
-        }
+      if (!form.phone) {
+        setCouponError('Please enter your phone number above first')
+        setApplyingCoupon(false)
+        return
       }
+      const { data: { user } } = await supabase.auth.getUser()
+      let usedCount = 0
+      if (user) {
+        const { count } = await supabase.from('orders').select('*', { count: 'exact', head: true }).eq('customer_id', user.id).eq('coupon_code', codeToApply.toUpperCase()).eq('restaurant_id', RESTAURANT_ID)
+        usedCount = count || 0
+      }
+      const { count: phoneCount } = await supabase.from('orders').select('*', { count: 'exact', head: true }).eq('customer_phone', form.phone).eq('coupon_code', codeToApply.toUpperCase()).eq('restaurant_id', RESTAURANT_ID)
+      usedCount = Math.max(usedCount, phoneCount || 0)
+      if (usedCount >= data.max_uses_per_customer) {
+        setCouponError('This coupon has already been used')
+        setApplyingCoupon(false)
+        return
+      }
+      if (data.min_order && getTotal() < data.min_order) {
+        setCouponError(`Minimum order $${data.min_order} required`)
+        setApplyingCoupon(false)
+        return
+      }
+      setCoupon(data)
     } else if (data.min_order && getTotal() < data.min_order) {
       setCouponError(`Minimum order $${data.min_order} required`)
     } else {
@@ -275,6 +304,20 @@ export default function CheckoutPage() {
                 </div>
 
                 <div className="bg-white rounded-2xl border border-gray-100 p-5">
+                  {suggestedCoupon && !coupon && (
+                    <div className="flex items-center justify-between gap-3 p-3 rounded-xl mb-4" style={{ background: '#FFF9E0', border: '1px solid #F5C800' }}>
+                      <div>
+                        <div className="font-semibold text-sm text-gray-900">🎉 First order? Get {suggestedCoupon.type === 'percent' ? `${suggestedCoupon.value}%` : `$${suggestedCoupon.value}`} off!</div>
+                        <div className="text-xs text-gray-600 mt-0.5">Code: {suggestedCoupon.code}</div>
+                      </div>
+                      <button onClick={() => { setCouponCode(suggestedCoupon.code); applyCoupon(suggestedCoupon.code) }}
+                        disabled={applyingCoupon}
+                        className="text-xs px-3 py-2 rounded-lg font-semibold whitespace-nowrap disabled:opacity-50"
+                        style={{ background: '#F5C800', color: '#1a1a1a' }}>
+                        {applyingCoupon ? '...' : 'Apply'}
+                      </button>
+                    </div>
+                  )}
                   <h3 className="font-semibold text-gray-900 mb-3">🏷️ Coupon Code</h3>
                   {coupon ? (
                     <div className="flex items-center justify-between p-3 rounded-xl" style={{ background: '#f0fdf4', border: '1px solid #86efac' }}>
@@ -295,7 +338,7 @@ export default function CheckoutPage() {
                         onChange={e => { setCouponCode(e.target.value.toUpperCase()); setCouponError('') }}
                         placeholder="Enter coupon code"
                         className="flex-1 px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-orange-400 uppercase" />
-                      <button onClick={applyCoupon} disabled={applyingCoupon || !couponCode}
+                      <button onClick={() => applyCoupon()} disabled={applyingCoupon || !couponCode}
                         className="px-4 py-2.5 rounded-xl text-sm font-semibold disabled:opacity-50"
                         style={{ background: 'var(--color-primary)', color: '#1a1a1a' }}>
                         {applyingCoupon ? '...' : 'Apply'}
