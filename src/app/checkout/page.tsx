@@ -18,6 +18,7 @@ export default function CheckoutPage() {
   const [authChecked, setAuthChecked] = useState(false)
   const [orderType, setOrderType] = useState<'pickup' | 'delivery'>('pickup')
   const [deliveryEnabled, setDeliveryEnabled] = useState(false)
+  const [deliveryFee, setDeliveryFee] = useState(5.00)
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
   const [couponCode, setCouponCode] = useState('')
@@ -42,6 +43,10 @@ export default function CheckoutPage() {
       setDeliveryEnabled(enabled)
       if (!enabled && savedType === 'delivery') setOrderType('pickup')
     })
+    supabaseClient.from('settings').select('value').eq('key', 'delivery_fee').eq('restaurant_id', RESTAURANT_ID).single().then(({ data }) => {
+      if (data?.value) setDeliveryFee(parseFloat(data.value))
+    })
+
     const supabase = createClient()
     supabase.auth.getUser().then(({ data }) => {
       if (!data.user) {
@@ -143,7 +148,7 @@ export default function CheckoutPage() {
     setApplyingCoupon(false)
   }
 
-  const deliveryFeeVal = orderType === 'delivery' ? 5.00 : 0
+  const deliveryFeeVal = orderType === 'delivery' ? deliveryFee : 0
   const getDiscount = () => {
     if (!coupon) return 0
     if (coupon.type === 'percent') return (getTotal() * coupon.value) / 100
