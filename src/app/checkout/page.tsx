@@ -197,6 +197,14 @@ export default function CheckoutPage() {
     if (coupon) {
       await supabase.from('promotions').update({ used_count: (coupon.used_count || 0) + 1 }).eq('id', coupon.id)
     }
+    // Send confirmation email
+    try {
+      const supabaseClient = createClient()
+      await supabaseClient.functions.invoke('order-confirmation', {
+        body: { order: { ...orderData, customer_email: form.email } },
+      })
+    } catch (e) { console.log('Email error (non-blocking):', e) }
+
     clearCart()
     router.push(`/order-confirmed?order=${orderNumber}&id=${orderData?.id || ''}`)
   }
