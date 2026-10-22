@@ -13,6 +13,7 @@ function OrderConfirmedContent() {
   const [orderType, setOrderType] = useState<string>('pickup')
   const [locationName, setLocationName] = useState<string>('')
   const [pointsEarned, setPointsEarned] = useState<number>(0)
+  const [appStoreUrl, setAppStoreUrl] = useState<string>('')
 
   useEffect(() => {
     const savedType = localStorage.getItem('orderType')
@@ -71,6 +72,14 @@ function OrderConfirmedContent() {
     }
 
     addPoints()
+
+    createClient()
+      .from('settings')
+      .select('value')
+      .eq('key', 'app_store_url')
+      .eq('restaurant_id', RESTAURANT_ID)
+      .maybeSingle()
+      .then(({ data }) => { if (data?.value) setAppStoreUrl(data.value) })
   }, [orderId])
 
   const estTime = orderType === 'delivery' ? '30-45 minutes' : '15-20 minutes'
@@ -132,6 +141,18 @@ function OrderConfirmedContent() {
               <span className="font-semibold text-gray-900">{estTime}</span>
             </div>
           </div>
+
+          {appStoreUrl && (
+            <a href={appStoreUrl} target="_blank" rel="noopener noreferrer"
+              className="rounded-2xl p-4 mb-6 flex items-center justify-between gap-3 text-left"
+              style={{ background: '#FFF9E0', border: '1px solid #E8C84A' }}>
+              <div>
+                <div className="font-semibold text-sm text-gray-900">Order faster next time</div>
+                <div className="text-xs mt-0.5 text-gray-500">Get our iPhone app</div>
+              </div>
+              <img src="/appstore-badge.svg" alt="Download on the App Store" className="h-10 w-auto shrink-0" />
+            </a>
+          )}
 
           <div className="space-y-3">
             <Link href="/orders"

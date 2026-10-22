@@ -36,6 +36,7 @@ export async function generateMetadata(): Promise<Metadata> {
       index: true,
       follow: true,
     },
+    ...(settings.ios_app_id ? { itunes: { appId: settings.ios_app_id } } : {}),
   }
 }
 

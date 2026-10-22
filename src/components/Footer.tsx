@@ -45,6 +45,12 @@ export default function Footer() {
               <span className="font-bold text-lg" style={{fontFamily: 'var(--font-display)'}}>{businessName}</span>
             </div>
             <p className="text-gray-400 text-sm leading-relaxed">{tagline}</p>
+            {settings.app_store_url && (
+              <a href={settings.app_store_url} target="_blank" rel="noopener noreferrer"
+                className="inline-block mt-5" aria-label="Download on the App Store">
+                <img src="/appstore-badge.svg" alt="Download on the App Store" className="h-11 w-auto" />
+              </a>
+            )}
             <div className="flex gap-3 mt-6">
               <a href={facebook} target="_blank" rel="noopener noreferrer"
                 className="w-9 h-9 rounded-full bg-gray-800 flex items-center justify-center hover:bg-orange-500 transition-colors">
