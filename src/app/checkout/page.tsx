@@ -10,6 +10,7 @@ import { RESTAURANT_ID } from '@/lib/restaurant'
 import { loadStripe } from '@stripe/stripe-js'
 import { Elements } from '@stripe/react-stripe-js'
 import StripePaymentForm from '@/components/StripePaymentForm'
+import { getChannel } from '@/lib/channel'
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
@@ -187,6 +188,8 @@ export default function CheckoutPage() {
       user_id: userData.user?.id || null,
       restaurant_id: RESTAURANT_ID,
       payment_status: 'paid',
+      source: 'web',
+      channel: getChannel(),
     }).select().single()
 
     if (error) {

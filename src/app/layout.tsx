@@ -3,6 +3,7 @@ import Script from 'next/script'
 import './globals.css'
 import { getSettings } from '@/lib/settings'
 import CookieBanner from '@/components/CookieBanner'
+import ChannelTracker from '@/components/ChannelTracker'
 
 const GA_ID = 'G-RD2J6J2DMZ'
 
@@ -90,6 +91,7 @@ export default async function RootLayout({
             gtag('config', '${GA_ID}');
           `}
         </Script>
+        <ChannelTracker />
         {children}
         <CookieBanner />
       </body>
