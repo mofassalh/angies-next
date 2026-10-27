@@ -4,6 +4,7 @@ import './globals.css'
 import { getSettings } from '@/lib/settings'
 import CookieBanner from '@/components/CookieBanner'
 import ChannelTracker from '@/components/ChannelTracker'
+import MetaPixel from '@/components/MetaPixel'
 
 const GA_ID = 'G-RD2J6J2DMZ'
 
@@ -92,6 +93,7 @@ export default async function RootLayout({
           `}
         </Script>
         <ChannelTracker />
+        <MetaPixel pixelId={settings.meta_pixel_id} />
         {children}
         <CookieBanner />
       </body>

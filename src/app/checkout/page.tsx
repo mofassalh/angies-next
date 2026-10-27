@@ -11,6 +11,7 @@ import { loadStripe } from '@stripe/stripe-js'
 import { Elements } from '@stripe/react-stripe-js'
 import StripePaymentForm from '@/components/StripePaymentForm'
 import { getChannel } from '@/lib/channel'
+import { trackPurchase } from '@/lib/metaPixel'
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
@@ -209,6 +210,7 @@ export default function CheckoutPage() {
     } catch (e) { console.log('Email error (non-blocking):', e) }
 
     clearCart()
+    trackPurchase(finalTotal, orderData?.id)
     router.push(`/order-confirmed?order=${orderNumber}&id=${orderData?.id || ''}`)
   }
 
