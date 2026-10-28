@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import Script from 'next/script'
 import './globals.css'
 import { getSettings } from '@/lib/settings'
+import { createClient } from '@/lib/supabase'
+import { RESTAURANT_ID } from '@/lib/restaurant'
 import CookieBanner from '@/components/CookieBanner'
 import ChannelTracker from '@/components/ChannelTracker'
 import MetaPixel from '@/components/MetaPixel'
@@ -14,6 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const description = settings.tagline || 'Order online for pickup or delivery from Angie\'s Kebabs & Burgers. Locations in St Albans, Fitzroy North & Ascot Vale.'
 
   return {
+    metadataBase: new URL('https://angiesknb.com'),
     title: {
       default: businessName,
       template: `%s | ${businessName}`,
@@ -51,18 +54,48 @@ export default async function RootLayout({
   const primaryColor = settings.primary_color || '#F5C800'
   const businessName = settings.business_name || "Angie's Kebabs & Burgers"
 
+  const { data: locs } = await createClient()
+    .from('locations')
+    .select('name, address, phone')
+    .eq('restaurant_id', RESTAURANT_ID)
+    .eq('is_active', true)
+
+  const toPhone = (p?: string) => {
+    const d = (p || '').replace(/\D/g, '')
+    return d.startsWith('0') ? `+61 ${d.slice(1)}` : p || undefined
+  }
+
   const structuredData = {
     '@context': 'https://schema.org',
-    '@type': 'Restaurant',
+    '@type': 'Organization',
     name: businessName,
     url: 'https://angiesknb.com',
-    servesCuisine: ['Kebab', 'Burger'],
-    hasMenu: 'https://angiesknb.com/menu',
-    location: [
-      { '@type': 'Place', name: 'St Albans', address: { '@type': 'PostalAddress', addressLocality: 'St Albans', addressCountry: 'AU' } },
-      { '@type': 'Place', name: 'Fitzroy North', address: { '@type': 'PostalAddress', addressLocality: 'Fitzroy North', addressCountry: 'AU' } },
-      { '@type': 'Place', name: 'Ascot Vale', address: { '@type': 'PostalAddress', addressLocality: 'Ascot Vale', addressCountry: 'AU' } },
-    ],
+    logo: 'https://angiesknb.com/logo.jpg',
+    subOrganization: (locs || []).map((l: any) => {
+      // address format: "street, Suburb STATE POSTCODE"
+      const full = String(l.address || '')
+      const i = full.indexOf(',')
+      const street = (i >= 0 ? full.slice(0, i) : full).trim()
+      const rest = (i >= 0 ? full.slice(i + 1) : '').trim()
+      const m = rest.match(/^(.*?)\s+([A-Z]{2,3})\s+(\d{4})$/)
+      return {
+        '@type': 'Restaurant',
+        name: l.name,
+        url: 'https://angiesknb.com',
+        telephone: toPhone(l.phone),
+        servesCuisine: ['Kebab', 'Burger', 'Halal'],
+        hasMenu: 'https://angiesknb.com/menu',
+        acceptsReservations: false,
+        address: {
+          '@type': 'PostalAddress',
+          streetAddress: street,
+          addressLocality: m ? m[1] : rest,
+          addressRegion: m ? m[2] : 'VIC',
+          postalCode: m ? m[3] : undefined,
+          addressCountry: 'AU',
+        },
+      }
+    }),
   }
 
   return (

@@ -1,7 +1,7 @@
 import Link from 'next/link'
 
 export const metadata = {
-  title: "Privacy Policy | Angie's Kebabs & Burgers",
+  title: "Privacy Policy",
   description: "Privacy Policy for Angie's Kebabs & Burgers",
 }
 
