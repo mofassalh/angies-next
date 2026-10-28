@@ -223,7 +223,9 @@ export default function CheckoutPage() {
       return
     }
     if (coupon) {
-      await supabase.from('promotions').update({ used_count: (coupon.used_count || 0) + 1 }).eq('id', coupon.id)
+      // Count the coupon use on the server (customers can't edit coupons directly)
+      const { error: useErr } = await supabase.rpc('use_coupon', { promo_id: coupon.id })
+      if (useErr) await supabase.from('promotions').update({ used_count: (coupon.used_count || 0) + 1 }).eq('id', coupon.id)
     }
     // Send confirmation email
     try {
