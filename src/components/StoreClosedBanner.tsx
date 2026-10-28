@@ -36,7 +36,7 @@ export default function StoreClosedBanner({ className = '' }: { className?: stri
       <div className="text-xl">🕒</div>
       <div>
         <div className="font-semibold" style={{ color: '#991B1B' }}>{name || 'This store'} is closed</div>
-        <div className="text-sm mt-0.5" style={{ color: '#B91C1C' }}>{status.message} You can look at the menu, but online ordering is paused until then.</div>
+        <div className="text-sm mt-0.5" style={{ color: '#B91C1C' }}>{status.message} You can still look at the menu.</div>
       </div>
     </div>
   )

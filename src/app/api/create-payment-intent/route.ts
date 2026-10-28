@@ -37,10 +37,6 @@ async function closedMessage(locationId?: string, locationName?: string): Promis
 }
 
 export async function POST(req: NextRequest) {
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-    apiVersion: '2026-05-27.dahlia',
-  })
-
   try {
     const body = await req.json()
     const { amount, currency = 'aud', metadata = {} } = body
@@ -52,6 +48,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: closed, storeClosed: true }, { status: 409 })
     }
 
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+      apiVersion: '2026-05-27.dahlia',
+    })
     const paymentIntent = await stripe.paymentIntents.create({
       amount: Math.round(amount * 100),
       currency,
