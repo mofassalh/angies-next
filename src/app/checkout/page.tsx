@@ -12,6 +12,7 @@ import { Elements } from '@stripe/react-stripe-js'
 import StripePaymentForm from '@/components/StripePaymentForm'
 import { getChannel } from '@/lib/channel'
 import { trackPurchase } from '@/lib/metaPixel'
+import { getStoreStatus, StoreStatus } from '@/lib/storeHours'
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
@@ -28,12 +29,35 @@ export default function CheckoutPage() {
   const [couponError, setCouponError] = useState('')
   const [applyingCoupon, setApplyingCoupon] = useState(false)
   const [suggestedCoupon, setSuggestedCoupon] = useState<any>(null)
+  const [storeStatus, setStoreStatus] = useState<StoreStatus | null>(null)
+  const [storeName, setStoreName] = useState('')
   const [form, setForm] = useState({
     name: '', phone: '', email: '',
     address: '', suburb: '', postcode: '', notes: '',
   })
   const router = useRouter()
   const { items, getSubtotal, getGST, getTotal, clearCart } = useCartStore()
+
+  // Check whether the chosen store is open right now (re-checked every minute)
+  useEffect(() => {
+    const check = async () => {
+      const id = localStorage.getItem('selectedLocationId')
+      const name = localStorage.getItem('selectedLocationName')
+      if (!id && !name) return
+      const supabase = createClient()
+      let q = supabase.from('locations').select('id, name, is_open, opening_hours').eq('restaurant_id', RESTAURANT_ID)
+      q = id ? q.eq('id', id) : q.eq('name', name!)
+      const { data } = await q.maybeSingle()
+      if (data) {
+        setStoreName(data.name)
+        setStoreStatus(getStoreStatus(data))
+      }
+    }
+    check()
+    const t = setInterval(check, 60000)
+    return () => clearInterval(t)
+  }, [])
+  const storeClosed = storeStatus ? !storeStatus.open : false
 
   useEffect(() => {
     setMounted(true)
@@ -235,6 +259,16 @@ export default function CheckoutPage() {
           ))}
         </div>
 
+        {storeClosed && (
+          <div className="mb-6 rounded-2xl p-4 flex items-start gap-3" style={{ background: '#FEF2F2', border: '1px solid #FECACA' }}>
+            <div className="text-xl">🕒</div>
+            <div>
+              <div className="font-semibold" style={{ color: '#991B1B' }}>{storeName || 'This store'} is closed</div>
+              <div className="text-sm mt-0.5" style={{ color: '#B91C1C' }}>{storeStatus?.message} You can keep your cart and order when we open.</div>
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-4">
             {step === 1 && (
@@ -425,15 +459,16 @@ export default function CheckoutPage() {
                   </div>
                 </div>
 
-                <button onClick={() => setStep(3)}
+                <button onClick={() => { if (!storeClosed) setStep(3) }}
+                  disabled={storeClosed}
                   className="w-full py-4 rounded-full text-white font-semibold transition-all hover:shadow-lg"
-                  style={{background: 'var(--color-primary)'}}>
-                  Continue to Payment →
+                  style={{background: storeClosed ? '#D1D5DB' : 'var(--color-primary)', cursor: storeClosed ? 'not-allowed' : 'pointer'}}>
+                  {storeClosed ? 'Store closed — ordering paused' : 'Continue to Payment →'}
                 </button>
               </>
             )}
 
-            {step === 3 && (
+            {step === 3 && !storeClosed && (
               <div className="bg-white rounded-2xl border border-gray-100 p-5">
                 <h3 className="font-semibold text-gray-900 mb-5">💳 Payment</h3>
                 <Elements stripe={stripePromise} options={{ mode: 'payment', amount: Math.round(finalTotal * 100), currency: 'aud' }}>

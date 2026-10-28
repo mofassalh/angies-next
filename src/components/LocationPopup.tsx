@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase'
+import { RESTAURANT_ID } from '@/lib/restaurant'
+import { getStoreStatus } from '@/lib/storeHours'
 
 interface Location {
   id: string
@@ -10,6 +12,8 @@ interface Location {
   postcode: string
   address: string
   phone: string
+  is_open?: boolean | null
+  opening_hours?: any
 }
 
 interface LocationPopupProps {
@@ -28,6 +32,7 @@ export default function LocationPopup({ onSelect, onClose }: LocationPopupProps)
         .from('locations')
         .select('*')
         .eq('is_active', true)
+        .eq('restaurant_id', RESTAURANT_ID)
         .order('name')
       if (!error && data) setLocations(data)
       setLoading(false)
@@ -83,6 +88,14 @@ export default function LocationPopup({ onSelect, onClose }: LocationPopupProps)
                     </div>
                     <div className="text-sm text-gray-500 mt-0.5">{location.address}</div>
                     <div className="text-xs text-gray-400 mt-0.5">{location.phone}</div>
+                    {(() => {
+                      const st = getStoreStatus(location)
+                      return st.open ? (
+                        <span className="inline-block mt-1.5 text-xs font-medium px-2 py-0.5 rounded-full" style={{ background: '#F0FDF4', color: '#15803D' }}>Open now</span>
+                      ) : (
+                        <span className="inline-block mt-1.5 text-xs font-medium px-2 py-0.5 rounded-full" style={{ background: '#FEF2F2', color: '#B91C1C' }}>{st.message}</span>
+                      )
+                    })()}
                   </div>
                   <div className="w-8 h-8 rounded-full border-2 border-gray-200 group-hover:border-yellow-400 flex items-center justify-center transition-all flex-shrink-0" style={{}}>
                     <svg className="w-4 h-4 text-gray-400 group-hover:text-yellow-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">

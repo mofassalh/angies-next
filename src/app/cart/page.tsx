@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useCartStore } from '@/store/cartStore'
 import Navbar from '@/components/Navbar'
+import StoreClosedBanner from '@/components/StoreClosedBanner'
 
 export default function CartPage() {
   const [mounted, setMounted] = useState(false)
@@ -21,6 +22,7 @@ export default function CartPage() {
         <h1 className="text-3xl font-bold text-gray-900 mb-8" style={{fontFamily: 'var(--font-display)'}}>
           Your Cart
         </h1>
+        <StoreClosedBanner className="mb-6" />
 
         {items.length === 0 ? (
           <div className="text-center py-20">

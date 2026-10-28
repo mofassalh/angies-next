@@ -29,7 +29,12 @@ export default function StripePaymentForm({ onSuccess, loading, setLoading, fina
     const res = await fetch('/api/create-payment-intent', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ amount: finalTotal, currency: 'aud' }),
+      body: JSON.stringify({
+        amount: finalTotal,
+        currency: 'aud',
+        locationId: localStorage.getItem('selectedLocationId') || undefined,
+        locationName: localStorage.getItem('selectedLocationName') || undefined,
+      }),
     })
     const { clientSecret, error: apiError } = await res.json()
     if (apiError) {

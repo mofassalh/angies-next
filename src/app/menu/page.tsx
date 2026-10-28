@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase'
 import { RESTAURANT_ID } from '@/lib/restaurant'
 import Navbar from '@/components/Navbar'
+import StoreClosedBanner from '@/components/StoreClosedBanner'
 import Footer from '@/components/Footer'
 import ProductModal from '@/components/ProductModal'
 
@@ -103,6 +104,7 @@ export default function MenuPage() {
             {selectedLocation && (
               <p className="text-gray-500 mt-1 text-sm">📍 {selectedLocation}</p>
             )}
+            <StoreClosedBanner className="mt-4" />
           </div>
 
           {/* Category tabs */}
