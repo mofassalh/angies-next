@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 import { RESTAURANT_ID } from '@/lib/restaurant'
+import { storeSlug } from '@/lib/storePages'
 
 export default function Footer() {
   const [locations, setLocations] = useState<any[]>([])
@@ -76,7 +77,7 @@ export default function Footer() {
               <ul className="space-y-3 text-sm text-gray-400">
                 {locations.map(loc => (
                   <li key={loc.id}>
-                    <div className="font-medium text-gray-300">{loc.name}</div>
+                    <Link href={`/${storeSlug(loc.name)}`} className="font-medium text-gray-300 hover:text-white hover:underline">{loc.name}</Link>
                     {loc.address && <div>{loc.address}</div>}
                     {loc.phone && <div>{loc.phone}</div>}
                     {loc.hours && <div className="text-xs text-gray-500 mt-0.5">{loc.hours}</div>}
