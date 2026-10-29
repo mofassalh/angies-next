@@ -175,9 +175,9 @@ export default async function StorePage({ params }: { params: Promise<{ store: s
           <div className="bg-white rounded-3xl p-6" style={{ border: '1px solid #EBEBEB' }}>
             <h2 className="text-xl font-bold mb-4" style={{ color: '#1A1A1A' }}>Opening hours</h2>
             {rows.length ? (
-              <dl className="divide-y" style={{ borderColor: '#F3F4F6' }}>
-                {rows.map(r => (
-                  <div key={r.days} className="flex justify-between py-2.5 text-base">
+              <dl>
+                {rows.map((r, i) => (
+                  <div key={r.days} className="flex justify-between py-2.5 text-base" style={{ borderTop: i ? '1px solid #F3F4F6' : undefined }}>
                     <dt className="font-medium" style={{ color: '#374151' }}>{r.days}</dt>
                     <dd style={{ color: r.time === 'Closed' ? '#B91C1C' : '#1A1A1A' }}>{r.time}</dd>
                   </div>
