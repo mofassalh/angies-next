@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import RequireStore from '@/components/RequireStore'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useCartStore } from '@/store/cartStore'
@@ -31,6 +32,8 @@ export default function CheckoutPage() {
   const [suggestedCoupon, setSuggestedCoupon] = useState<any>(null)
   const [storeStatus, setStoreStatus] = useState<StoreStatus | null>(null)
   const [storeName, setStoreName] = useState('')
+  const [storeKey, setStoreKey] = useState(0)
+  const [changeStore, setChangeStore] = useState(false)
   const [form, setForm] = useState({
     name: '', phone: '', email: '',
     address: '', suburb: '', postcode: '', notes: '',
@@ -43,7 +46,7 @@ export default function CheckoutPage() {
     const check = async () => {
       const id = localStorage.getItem('selectedLocationId')
       const name = localStorage.getItem('selectedLocationName')
-      if (!id && !name) return
+      if (!id && !name) { setStoreName(''); return }
       const supabase = createClient()
       let q = supabase.from('locations').select('id, name, is_open, opening_hours').eq('restaurant_id', RESTAURANT_ID)
       q = id ? q.eq('id', id) : q.eq('name', name!)
@@ -56,8 +59,9 @@ export default function CheckoutPage() {
     check()
     const t = setInterval(check, 60000)
     return () => clearInterval(t)
-  }, [])
+  }, [storeKey])
   const storeClosed = storeStatus ? !storeStatus.open : false
+  const noStore = !storeName
 
   useEffect(() => {
     setMounted(true)
@@ -242,7 +246,8 @@ export default function CheckoutPage() {
 
   return (
     <main className="min-h-screen bg-gray-50">
-      <Navbar selectedLocation={null} onLocationClick={() => {}} />
+      <Navbar selectedLocation={storeName || null} onLocationClick={() => setChangeStore(true)} />
+      <RequireStore required open={changeStore} onChosen={() => { setChangeStore(false); setStoreKey(k => k + 1) }} onClose={() => setChangeStore(false)} />
       <div className="pt-16 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <h1 className="text-3xl font-bold text-gray-900 mb-2" style={{fontFamily: 'var(--font-display)'}}>Checkout</h1>
 
@@ -458,14 +463,18 @@ export default function CheckoutPage() {
                     <div>{form.name} · {form.phone}</div>
                     <div>{form.email}</div>
                     {orderType === 'delivery' && <div>{form.address}, {form.suburb} {form.postcode}</div>}
+                    <div className="pt-1">
+                      📍 {storeName ? storeName.replace(/^Angie's Kebabs & Burgers\s*-\s*/, '') : <span className="text-red-600">No store chosen</span>}
+                      {' '}<button type="button" onClick={() => setChangeStore(true)} className="underline text-gray-500">Change</button>
+                    </div>
                   </div>
                 </div>
 
-                <button onClick={() => { if (!storeClosed) setStep(3) }}
+                <button onClick={() => { if (noStore) { setChangeStore(true); return } if (!storeClosed) setStep(3) }}
                   disabled={storeClosed}
                   className="w-full py-4 rounded-full text-white font-semibold transition-all hover:shadow-lg"
                   style={{background: storeClosed ? '#D1D5DB' : 'var(--color-primary)', cursor: storeClosed ? 'not-allowed' : 'pointer'}}>
-                  {storeClosed ? 'Store closed — ordering paused' : 'Continue to Payment →'}
+                  {storeClosed ? 'Store closed — ordering paused' : noStore ? 'Choose your store →' : 'Continue to Payment →'}
                 </button>
               </>
             )}

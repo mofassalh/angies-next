@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase'
 import { RESTAURANT_ID } from '@/lib/restaurant'
 import Navbar from '@/components/Navbar'
+import RequireStore from '@/components/RequireStore'
 import StoreClosedBanner from '@/components/StoreClosedBanner'
 import Footer from '@/components/Footer'
 import ProductModal from '@/components/ProductModal'
@@ -28,6 +29,7 @@ export default function MenuPage() {
   const [selectedProduct, setSelectedProduct] = useState<any | null>(null)
   const [loading, setLoading] = useState(true)
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null)
+  const [changeStore, setChangeStore] = useState(false)
 
   useEffect(() => {
     const locName = localStorage.getItem('selectedLocationName')
@@ -92,7 +94,8 @@ export default function MenuPage() {
 
   return (
     <main className="min-h-screen bg-gray-50">
-      <Navbar selectedLocation={selectedLocation} onLocationClick={() => {}} />
+      <Navbar selectedLocation={selectedLocation} onLocationClick={() => setChangeStore(true)} />
+      <RequireStore open={changeStore} onChosen={(_id, name) => { setSelectedLocation(name); setChangeStore(false) }} onClose={() => setChangeStore(false)} />
 
       <div className="pt-16">
         {/* Header */}
