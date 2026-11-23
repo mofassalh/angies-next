@@ -435,7 +435,7 @@ export default function CheckoutPage() {
                   </div>
                   <div className="border-t border-gray-100 pt-3 space-y-1.5 text-sm">
                     <div className="flex justify-between text-gray-500"><span>Subtotal</span><span>${getSubtotal().toFixed(2)}</span></div>
-                    <div className="flex justify-between text-gray-500"><span>GST (10%)</span><span>${getGST().toFixed(2)}</span></div>
+                    <div className="flex justify-between text-gray-500"><span>Includes GST</span><span>${getGST().toFixed(2)}</span></div>
                     {orderType === 'delivery' && (
                       <div className="flex justify-between text-gray-500"><span>Delivery Fee</span><span>${deliveryFeeVal.toFixed(2)}</span></div>
                     )}
@@ -507,7 +507,7 @@ export default function CheckoutPage() {
               </div>
               <div className="border-t border-gray-100 mt-3 pt-3 space-y-1.5">
                 <div className="flex justify-between text-sm text-gray-500"><span>Subtotal</span><span>${getSubtotal().toFixed(2)}</span></div>
-                <div className="flex justify-between text-sm text-gray-500"><span>GST (10%)</span><span>${getGST().toFixed(2)}</span></div>
+                <div className="flex justify-between text-sm text-gray-500"><span>Includes GST</span><span>${getGST().toFixed(2)}</span></div>
                 {orderType === 'delivery' && (
                   <div className="flex justify-between text-sm text-gray-500"><span>Delivery Fee</span><span>${deliveryFeeVal.toFixed(2)}</span></div>
                 )}

@@ -42,6 +42,7 @@ export default function MenuPage() {
     const { data } = await supabase
       .from('menu_items')
       .select('*')
+      .or(`restaurant_id.eq.${RESTAURANT_ID},restaurant_id.is.null`)
       .eq('available', true)
       .order('sort_order')
     if (data) setItems(data)
@@ -57,14 +58,25 @@ export default function MenuPage() {
     })
   }, [])
 
-  const rawCategories = [...new Set(items.map(i => i.category).filter(Boolean))] as string[]
+  // "Angie's Kebabs & Burgers - St Albans" / "St Albans" -> "stalbans"
+  const areaKey = (v: string | null | undefined) =>
+    String(v || '').split(/\s+-\s+/).pop()!.toLowerCase().replace(/[^a-z0-9]/g, '')
+  // Show items for every store ('all' / empty) plus items for the chosen store only
+  const storeItems = items.filter(i => {
+    const loc = (i.location || '').trim()
+    if (!loc || loc.toLowerCase() === 'all') return true
+    if (!selectedLocation) return true
+    return areaKey(loc) === areaKey(selectedLocation)
+  })
+
+  const rawCategories = [...new Set(storeItems.map(i => i.category).filter(Boolean))] as string[]
   const categories = categoryOrder.length > 0
     ? [...categoryOrder.filter(c => rawCategories.includes(c)), ...rawCategories.filter(c => !categoryOrder.includes(c))]
     : rawCategories
 
   const filteredItems = activeCategory === 'all'
-    ? items
-    : items.filter(p => p.category === activeCategory)
+    ? storeItems
+    : storeItems.filter(p => p.category === activeCategory)
 
   const emojis: Record<string, string> = {
     'burger': '🍔', 'kebab': '🥙', 'wrap': '🌯',

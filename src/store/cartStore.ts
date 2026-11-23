@@ -80,11 +80,12 @@ export const useCartStore = create<CartStore>()(
       },
 
       getGST: () => {
-        return Math.round(get().getSubtotal() * 0.10 * 100) / 100
+        // Menu prices already include GST: this is the GST part of the price (1/11)
+        return Math.round((get().getSubtotal() / 11) * 100) / 100
       },
 
       getTotal: () => {
-        return Math.round((get().getSubtotal() + get().getGST()) * 100) / 100
+        return Math.round(get().getSubtotal() * 100) / 100
       },
     }),
     {

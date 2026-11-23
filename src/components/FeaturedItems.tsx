@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
+import { RESTAURANT_ID } from '@/lib/restaurant'
 import ProductModal from '@/components/ProductModal'
 
 interface MenuItem {
@@ -12,6 +13,7 @@ interface MenuItem {
   base_price: number
   image_url: string | null
   category: string
+  location?: string
   customizations?: any[]
   tags?: string[]
 }
@@ -31,10 +33,18 @@ export default function FeaturedItems({ onOrderClick }: FeaturedItemsProps) {
       const { data } = await supabase
         .from('menu_items')
         .select('*')
+        .or(`restaurant_id.eq.${RESTAURANT_ID},restaurant_id.is.null`)
         .eq('available', true)
         .eq('is_popular', true)
-        .limit(8)
-      if (data) setItems(data)
+        .limit(24)
+      const area = (v: any) => String(v || '').split(/\s+-\s+/).pop()!.toLowerCase().replace(/[^a-z0-9]/g, '')
+      const store = typeof window !== 'undefined' ? localStorage.getItem('selectedLocationName') : null
+      // Only items for every store, or for the chosen store
+      const list = (data || []).filter((i: any) => {
+        const loc = String(i.location || '').trim()
+        return !loc || loc.toLowerCase() === 'all' || !store || area(loc) === area(store)
+      })
+      setItems(list.slice(0, 8))
     }
     fetchItems()
   }, [])
