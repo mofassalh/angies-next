@@ -112,10 +112,6 @@ export default function CartPage() {
                   <span>Subtotal</span>
                   <span>${getSubtotal().toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between text-gray-600">
-                  <span>Includes GST</span>
-                  <span>${getGST().toFixed(2)}</span>
-                </div>
                 <div className="border-t border-gray-100 pt-2 mt-2 flex justify-between font-bold text-gray-900 text-base">
                   <span>Total</span>
                   <span>${getTotal().toFixed(2)}</span>
